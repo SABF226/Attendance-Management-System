@@ -1,0 +1,882 @@
+/**
+ * English Club Attendance List - Main Stylesheet
+ * Mobile-First Responsive Design
+ * Color Palette: Deep Navy #1D1F5A, Rich Red #B61F24, Warm Cream #FCFBFF, Soft Blue-Grey #80BCCB
+ */
+
+/* ============================================
+   BASE STYLES (Mobile First - Small Screens)
+   ============================================ */
+
+/* Box sizing */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Base body styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #FCFBFF;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+    color: #1D1F5A;
+}
+
+/* Container - mobile default */
+.container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 1rem;
+}
+
+/* Navbar - mobile default */
+.navbar {
+    background: linear-gradient(135deg, #1D1F5A 0%, #2D2F7A 100%);
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nav-logo-img {
+    height: 32px;
+    width: auto;
+    border-radius: 5px;
+}
+
+.nav-title {
+    color: #FCFBFF;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+/* Mobile Menu Toggle */
+.menu-toggle {
+    display: block;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: #FCFBFF;
+    margin: 5px 0;
+    transition: all 0.3s ease;
+}
+
+.menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Navigation Menu - mobile default (hidden) */
+.nav-menu {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.nav-menu.active {
+    display: flex;
+}
+
+.nav-menu li {
+    width: 100%;
+    border-bottom: 1px solid rgba(128, 188, 203, 0.2);
+}
+
+.nav-link {
+    display: block;
+    color: #FCFBFF;
+    text-decoration: none;
+    padding: 0.875rem 1rem;
+    transition: background 0.3s;
+}
+
+.nav-link:hover {
+    background: rgba(128, 188, 203, 0.3);
+}
+
+.nav-link.active {
+    background: #80BCCB;
+    color: #1D1F5A;
+}
+
+/* Cards - mobile default */
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(29, 31, 90, 0.1);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #80BCCB;
+    align-items: flex-start;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    color: #1D1F5A;
+    margin: 0;
+}
+
+/* Buttons - touch-friendly */
+.btn {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+}
+
+.btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+    min-width: auto;
+}
+
+.btn-primary {
+    background: #1D1F5A;
+    color: #FCFBFF;
+}
+
+.btn-primary:hover {
+    background: #2D2F7A;
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background: #80BCCB;
+    color: #1D1F5A;
+}
+
+.btn-success:hover {
+    background: #6AACBD;
+}
+
+.btn-danger {
+    background: #B61F24;
+    color: #FCFBFF;
+}
+
+.btn-danger:hover {
+    background: #961A1F;
+}
+
+.btn-secondary {
+    background: #80BCCB;
+    color: #1D1F5A;
+}
+
+.btn-secondary:hover {
+    background: #6AACBD;
+}
+
+/* Forms - mobile optimized */
+.form-group {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    color: #1D1F5A;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #80BCCB;
+    border-radius: 5px;
+    font-size: 1rem;
+    min-height: 44px;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #1D1F5A;
+    box-shadow: 0 0 0 3px rgba(29, 31, 90, 0.1);
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Tables - responsive mobile */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+table th {
+    background: #1D1F5A;
+    color: #FCFBFF;
+    padding: 0.75rem;
+    text-align: left;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #80BCCB;
+    font-size: 0.9rem;
+}
+
+table tr:hover {
+    background: #FCFBFF;
+}
+
+/* Actions column */
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+/* Badges */
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.badge-present {
+    background: #80BCCB;
+    color: #1D1F5A;
+}
+
+.badge-absent {
+    background: #B61F24;
+    color: #FCFBFF;
+}
+
+.badge-excused {
+    background: #FCFBFF;
+    color: #1D1F5A;
+    border: 1px solid #80BCCB;
+}
+
+/* Status classes */
+.status-present { 
+    color: #1D1F5A; 
+    background-color: #80BCCB;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+}
+
+.status-absent { 
+    color: #FCFBFF; 
+    background-color: #B61F24;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+}
+
+.status-excused { 
+    color: #1D1F5A; 
+    background-color: #FCFBFF;
+    border: 1px solid #80BCCB;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+}
+
+/* Status Checkboxes in Attendance Form */
+.status-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.status-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.status-checkbox input[type="radio"] {
+    display: none;
+}
+
+.status-checkbox span {
+    user-select: none;
+}
+
+/* Present checkbox styling */
+.status-checkbox.status-present {
+    background-color: #e8f4f6;
+    color: #1D1F5A;
+}
+
+.status-checkbox.status-present:hover {
+    background-color: #d0e8ec;
+}
+
+.status-checkbox.status-present:has(input:checked) {
+    background-color: #80BCCB;
+    color: #1D1F5A;
+    border-color: #1D1F5A;
+    font-weight: 600;
+}
+
+/* Absent checkbox styling */
+.status-checkbox.status-absent {
+    background-color: #fce8e9;
+    color: #B61F24;
+}
+
+.status-checkbox.status-absent:hover {
+    background-color: #f5d0d2;
+}
+
+.status-checkbox.status-absent:has(input:checked) {
+    background-color: #B61F24;
+    color: #FCFBFF;
+    border-color: #961A1F;
+    font-weight: 600;
+}
+
+/* Excused checkbox styling */
+.status-checkbox.status-excused {
+    background-color: #f8f8ff;
+    color: #1D1F5A;
+    border: 1px solid #e0e0e0;
+}
+
+.status-checkbox.status-excused:hover {
+    background-color: #f0f0f5;
+}
+
+.status-checkbox.status-excused:has(input:checked) {
+    background-color: #FCFBFF;
+    color: #1D1F5A;
+    border-color: #80BCCB;
+    border-width: 2px;
+    font-weight: 600;
+}
+
+/* Alternative fallback for browsers without :has support */
+.status-checkbox input:checked + span {
+    font-weight: 600;
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.75rem 0;
+    font-size: 0.9rem;
+    color: #1D1F5A;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb a {
+    color: #80BCCB;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb a:hover {
+    color: #1D1F5A;
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: #ccc;
+    font-weight: 300;
+}
+
+.breadcrumb-current {
+    color: #666;
+    font-weight: 500;
+}
+
+/* Enhanced Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, #FCFBFF 0%, #f0f4f8 100%);
+    border-radius: 12px;
+    border: 2px dashed #80BCCB;
+}
+
+.empty-state-title {
+    font-size: 1.25rem;
+    color: #1D1F5A;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.empty-state-description {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.empty-state-action {
+    margin-top: 1rem;
+}
+
+/* Alerts */
+.alert {
+    padding: 0.875rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Pagination - mobile */
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.375rem;
+    margin-top: 1rem;
+}
+
+.pagination a {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #80BCCB;
+    border-radius: 3px;
+    text-decoration: none;
+    color: #1D1F5A;
+    font-size: 0.85rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.pagination a.active {
+    background: #1D1F5A;
+    color: #FCFBFF;
+}
+
+/* Search box */
+.search-box {
+    position: relative;
+    width: 100%;
+}
+
+.search-box input {
+    padding-right: 2.5rem;
+    width: 100%;
+}
+
+.search-box::after {
+    content: '🔍';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+}
+
+/* Search form */
+form[method="GET"] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+form[method="GET"] .form-control {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #1D1F5A;
+}
+
+/* Dashboard specific */
+.stat-card {
+    transition: transform 0.3s ease;
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.stat-item {
+    padding: 1rem;
+    background: linear-gradient(135deg, #1D1F5A 0%, #2D2F7A 100%);
+    color: #FCFBFF;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.stat-item.alt {
+    background: linear-gradient(135deg, #80BCCB 0%, #6AACBD 100%);
+    color: #1D1F5A;
+}
+
+.stat-item.danger {
+    background: linear-gradient(135deg, #B61F24 0%, #961A1F 100%);
+    color: #FCFBFF;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+.stat-link {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+
+/* Quick actions */
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Logo in dashboard */
+.dashboard-logo {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.dashboard-logo img {
+    max-width: 120px;
+    height: auto;
+    border-radius: 10px;
+}
+
+/* Session details */
+.session-info {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #FCFBFF;
+    border-radius: 5px;
+    border: 1px solid #80BCCB;
+}
+
+.session-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+/* Take attendance page */
+.take-attendance-logo {
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.take-attendance-logo img {
+    max-width: 80px;
+    height: auto;
+    border-radius: 10px;
+}
+
+.attendance-form .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    color: #1D1F5A;
+    margin-top: 2rem;
+}
+
+/* Loading state */
+.loading {
+    text-align: center;
+    padding: 2rem;
+}
+
+.loading::after {
+    content: 'Loading...';
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ============================================
+   TABLET STYLES (768px and up)
+   ============================================ */
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+        margin: 1.5rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .nav-title {
+        font-size: 1.5rem;
+    }
+
+    .nav-logo-img {
+        height: 40px;
+    }
+
+    /* Show desktop menu on tablet */
+    .menu-toggle {
+        display: none;
+    }
+
+    .nav-menu {
+        display: flex;
+        flex-direction: row;
+        width: auto;
+        gap: 1rem;
+    }
+
+    .nav-menu li {
+        width: auto;
+        border-bottom: none;
+    }
+
+    .card {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    form[method="GET"] {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    form[method="GET"] .form-control {
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+    }
+
+    .pagination {
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .session-stats {
+        gap: 2rem;
+    }
+
+    .quick-actions {
+        gap: 1rem;
+    }
+
+    footer {
+        padding: 2rem;
+        margin-top: 3rem;
+    }
+}
+
+/* ============================================
+   DESKTOP STYLES (1024px and up)
+   ============================================ */
+@media (min-width: 1024px) {
+    .container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .card {
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-row {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    form[method="GET"] .form-control {
+        max-width: 400px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    table th,
+    table td {
+        padding: 1rem;
+    }
+
+    table th {
+        font-size: 0.9rem;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+    }
+
+    .stat-label {
+        font-size: 1.2rem;
+    }
+}
+
+/* ============================================
+   LARGE DESKTOP (1280px and up)
+   ============================================ */
+@media (min-width: 1280px) {
+    .container {
+        max-width: 1400px;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+    .navbar, .btn, .form-group, footer, .menu-toggle {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .container {
+        margin: 0;
+        padding: 0;
+    }
+}
+

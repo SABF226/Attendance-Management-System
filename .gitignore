@@ -1,0 +1,43 @@
+# PHP
+/vendor/
+/node_modules/
+*.log
+*.cache
+.phpunit.result.cache
+composer.phar
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.sql.gz
+*.bak
+*.old
+backup*/
+
+# Temporary files
+tmp/
+temp/
+cache/
+
+# Testing
+.phpunit.cache/
+coverage/
+
+# Uploads (if any)
+uploads/*
+!uploads/.gitkeep
+
