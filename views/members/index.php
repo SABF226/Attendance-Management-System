@@ -5,9 +5,7 @@
     </div>
     
     <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-<?= $_SESSION['message_type'] ?? 'success' ?>">
-            <?= $_SESSION['message'] ?>
-        </div>
+        <div id="sessionMessage" data-message="<?= htmlspecialchars($_SESSION['message']) ?>" data-type="<?= $_SESSION['message_type'] ?? 'success' ?>" style="display: none;"></div>
         <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
     <?php endif; ?>
     
@@ -51,7 +49,11 @@
                     <?php foreach ($members as $member): ?>
                         <tr>
                             <td><?= htmlspecialchars($member['id'] ?? '') ?></td>
-                            <td><?= htmlspecialchars($member['name'] ?? '') ?></td>
+                            <td>
+                                <a href="?page=members&action=view&id=<?= $member['id'] ?? 0 ?>" class="member-link">
+                                    <?= htmlspecialchars($member['name'] ?? '') ?>
+                                </a>
+                            </td>
                             <td><?= htmlspecialchars($member['field'] ?? '') ?></td>
                             <td><?= htmlspecialchars($member['phone'] ?? '') ?></td>
                             <td><?= htmlspecialchars($member['email'] ?? '') ?></td>
@@ -59,7 +61,7 @@
                                 <a href="?page=members&action=edit&id=<?= $member['id'] ?? 0 ?>" class="btn btn-secondary btn-sm">Edit</a>
                                 <a href="?page=members&action=delete&id=<?= $member['id'] ?? 0 ?>" 
                                    class="btn btn-danger btn-sm"
-                                   onclick="return confirm('Are you sure you want to delete this member?')">Delete</a>
+                                   onclick="return confirmDelete(this, '<?= htmlspecialchars(addslashes($member['name'] ?? 'this member')) ?>')">Delete</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

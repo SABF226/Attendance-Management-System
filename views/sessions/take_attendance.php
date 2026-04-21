@@ -1,9 +1,5 @@
 <?php
-// Breadcrumb for take attendance
-$breadcrumbs = [
-    ['label' => 'Sessions', 'url' => '?page=sessions'],
-    ['label' => $session['session_name'] ?? 'Take Attendance']
-];
+// Breadcrumbs are now set in the controller
 ?>
 <div class="card">
     <div class="take-attendance-logo">
@@ -19,9 +15,7 @@ $breadcrumbs = [
     </div>
     
     <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-<?= $_SESSION['message_type'] ?? 'success' ?>">
-            <?= $_SESSION['message'] ?>
-        </div>
+        <div id="sessionMessage" data-message="<?= htmlspecialchars($_SESSION['message']) ?>" data-type="<?= $_SESSION['message_type'] ?? 'success' ?>" style="display: none;"></div>
         <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
     <?php endif; ?>
     
@@ -36,9 +30,17 @@ $breadcrumbs = [
             </div>
         </div>
     <?php else: ?>
-        <form method="POST" action="?page=sessions&action=save&id=<?= $session['id'] ?? 0 ?>" class="attendance-form">
+        <!-- Bulk Actions Bar -->
+        <div class="bulk-actions-bar">
+            <div class="bulk-actions-title">Bulk Actions:</div>
+            <button type="button" class="btn btn-success btn-sm" onclick="markAllPresent()">Mark All Present</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="resetAllAttendance()">Reset All</button>
+            <span class="keyboard-hint">Shortcuts: P=Present, A=Absent, E=Excused</span>
+        </div>
+        
+        <form method="POST" action="?page=sessions&action=save&id=<?= $session['id'] ?? 0 ?>" class="attendance-form" id="attendanceForm">
             <div class="table-responsive">
-                <table>
+                <table class="attendance-table">
                     <thead>
                         <tr>
                             <th>Member</th>

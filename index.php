@@ -42,11 +42,8 @@ require_once __DIR__ . '/config/database.php';
 // Determine current page for navigation
 $currentPage = $page;
 
-// Include header only if not exporting
-if (!$isExport) {
-    $pageTitle = 'English Club Attendance';
-    require_once __DIR__ . '/views/header.php';
-}
+// Initialize breadcrumbs variable
+$breadcrumbs = null;
 
 try {
     // Route handling
@@ -62,6 +59,7 @@ try {
             $recentSessions = $sessionModel->getRecent(5);
             $overallStats = $recordModel->getOverallStats();
             
+            require_once __DIR__ . '/views/header.php';
             include __DIR__ . '/views/dashboard.php';
             break;
             
@@ -73,17 +71,26 @@ try {
                 case 'index':
                 case 'list':
                     $members = $controller->index();
+                    require_once __DIR__ . '/views/header.php';
                     include __DIR__ . '/views/members/index.php';
                     break;
                     
                 case 'create':
                     $result = $controller->create();
+                    if (isset($result['data']['breadcrumbs'])) {
+                        $breadcrumbs = $result['data']['breadcrumbs'];
+                    }
+                    require_once __DIR__ . '/views/header.php';
                     include $result['view'];
                     break;
                     
                 case 'store':
                     $result = $controller->store($_POST);
                     if ($result['view']) {
+                        if (isset($result['data']['breadcrumbs'])) {
+                            $breadcrumbs = $result['data']['breadcrumbs'];
+                        }
+                        require_once __DIR__ . '/views/header.php';
                         extract($result['data']);
                         include $result['view'];
                     }
@@ -91,6 +98,20 @@ try {
                     
                 case 'edit':
                     $result = $controller->edit($id);
+                    if (isset($result['data']['breadcrumbs'])) {
+                        $breadcrumbs = $result['data']['breadcrumbs'];
+                    }
+                    require_once __DIR__ . '/views/header.php';
+                    extract($result['data']);
+                    include $result['view'];
+                    break;
+                    
+                case 'view':
+                    $result = $controller->show($id);
+                    if (isset($result['data']['breadcrumbs'])) {
+                        $breadcrumbs = $result['data']['breadcrumbs'];
+                    }
+                    require_once __DIR__ . '/views/header.php';
                     extract($result['data']);
                     include $result['view'];
                     break;
@@ -98,6 +119,10 @@ try {
                 case 'update':
                     $result = $controller->update($id, $_POST);
                     if ($result['view']) {
+                        if (isset($result['data']['breadcrumbs'])) {
+                            $breadcrumbs = $result['data']['breadcrumbs'];
+                        }
+                        require_once __DIR__ . '/views/header.php';
                         extract($result['data']);
                         include $result['view'];
                     }
@@ -109,11 +134,13 @@ try {
                     
                 case 'search':
                     $members = $controller->index();
+                    require_once __DIR__ . '/views/header.php';
                     include __DIR__ . '/views/members/index.php';
                     break;
                     
                 default:
                     $members = $controller->index();
+                    require_once __DIR__ . '/views/header.php';
                     include __DIR__ . '/views/members/index.php';
             }
             break;
@@ -125,12 +152,21 @@ try {
             switch ($action) {
                 case 'index':
                 case 'list':
-                    $sessions = $controller->sessionIndex();
+                    $result = $controller->sessionIndex();
+                    $sessions = $result['sessions'];
+                    $monthlyStats = $result['monthlyStats'];
+                    $filters = $result['filters'] ?? [];
+                    $sort = $result['sort'] ?? 'date_desc';
+                    require_once __DIR__ . '/views/header.php';
                     include __DIR__ . '/views/sessions/index.php';
                     break;
                     
                 case 'create':
                     $result = $controller->create();
+                    if (isset($result['data']['breadcrumbs'])) {
+                        $breadcrumbs = $result['data']['breadcrumbs'];
+                    }
+                    require_once __DIR__ . '/views/header.php';
                     extract($result['data']);
                     include $result['view'];
                     break;
@@ -138,6 +174,10 @@ try {
                 case 'store':
                     $result = $controller->storeSession($_POST);
                     if ($result['view']) {
+                        if (isset($result['data']['breadcrumbs'])) {
+                            $breadcrumbs = $result['data']['breadcrumbs'];
+                        }
+                        require_once __DIR__ . '/views/header.php';
                         extract($result['data']);
                         include $result['view'];
                     }
@@ -145,6 +185,10 @@ try {
                     
                 case 'take':
                     $result = $controller->takeAttendance($id);
+                    if (isset($result['data']['breadcrumbs'])) {
+                        $breadcrumbs = $result['data']['breadcrumbs'];
+                    }
+                    require_once __DIR__ . '/views/header.php';
                     extract($result['data']);
                     include $result['view'];
                     break;
@@ -155,6 +199,10 @@ try {
                     
                 case 'view':
                     $result = $controller->viewSession($id);
+                    if (isset($result['data']['breadcrumbs'])) {
+                        $breadcrumbs = $result['data']['breadcrumbs'];
+                    }
+                    require_once __DIR__ . '/views/header.php';
                     extract($result['data']);
                     include $result['view'];
                     break;
@@ -169,7 +217,10 @@ try {
                     break;
                     
                 default:
-                    $sessions = $controller->sessionIndex();
+                    $result = $controller->sessionIndex();
+                    $sessions = $result['sessions'];
+                    $monthlyStats = $result['monthlyStats'];
+                    require_once __DIR__ . '/views/header.php';
                     include __DIR__ . '/views/sessions/index.php';
             }
             break;
@@ -185,6 +236,7 @@ try {
             $recentSessions = $sessionModel->getRecent(5);
             $overallStats = $recordModel->getOverallStats();
             
+            require_once __DIR__ . '/views/header.php';
             include __DIR__ . '/views/dashboard.php';
     }
 } catch (PDOException $e) {

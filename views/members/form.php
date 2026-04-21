@@ -1,9 +1,5 @@
 <?php
-// Breadcrumb for member form
-$breadcrumbs = [
-    ['label' => 'Members', 'url' => '?page=members'],
-    ['label' => isset($member) ? 'Edit Member' : 'Add New Member']
-];
+// Breadcrumbs are now set in the controller
 ?>
 <div class="card">
     <div class="card-header">
@@ -31,8 +27,12 @@ $breadcrumbs = [
             
             <div class="form-group">
                 <label for="field" class="form-label">Field of Study *</label>
-                <input type="text" id="field" name="field" class="form-control" 
-                       value="<?= htmlspecialchars($member['field'] ?? '') ?>" required>
+                <select id="field" name="field" class="form-control" required>
+                    <option value="">-- Select Field --</option>
+                    <option value="Computer Science" <?= ($member['field'] ?? '') === 'Computer Science' ? 'selected' : '' ?>>Computer Science</option>
+                    <option value="Electrical Engineering" <?= ($member['field'] ?? '') === 'Electrical Engineering' ? 'selected' : '' ?>>Electrical Engineering</option>
+                    <option value="Mechanical Engineering" <?= ($member['field'] ?? '') === 'Mechanical Engineering' ? 'selected' : '' ?>>Mechanical Engineering</option>
+                </select>
             </div>
         </div>
         

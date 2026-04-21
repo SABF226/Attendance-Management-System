@@ -5,11 +5,75 @@
     </div>
     
     <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-<?= $_SESSION['message_type'] ?? 'success' ?>">
-            <?= $_SESSION['message'] ?>
-        </div>
+        <div id="sessionMessage" data-message="<?= htmlspecialchars($_SESSION['message']) ?>" data-type="<?= $_SESSION['message_type'] ?? 'success' ?>" style="display: none;"></div>
         <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
     <?php endif; ?>
+    
+    <!-- Session Statistics Bar -->
+    <?php if (!empty($monthlyStats)): ?>
+    <div class="stats-bar">
+        <div class="stats-bar-item">
+            <span class="stats-bar-value"><?= $monthlyStats['total_this_month'] ?></span>
+            <span class="stats-bar-label">Sessions This Month</span>
+        </div>
+        <div class="stats-bar-item">
+            <span class="stats-bar-value"><?= $monthlyStats['avg_attendance_rate'] ?>%</span>
+            <span class="stats-bar-label">Avg Attendance Rate</span>
+        </div>
+        <div class="stats-bar-item">
+            <span class="stats-bar-value"><?= htmlspecialchars($monthlyStats['most_active_team']) ?></span>
+            <span class="stats-bar-label">Most Active Team</span>
+        </div>
+        <div class="stats-bar-item">
+            <span class="stats-bar-value"><?= $monthlyStats['total_sessions'] ?></span>
+            <span class="stats-bar-label">Total Sessions</span>
+        </div>
+    </div>
+    <?php endif; ?>
+    
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form method="GET" class="filter-form">
+            <input type="hidden" name="page" value="sessions">
+            
+            <div class="filter-group">
+                <label class="filter-label">From Date</label>
+                <input type="date" name="date_from" class="filter-input" 
+                       value="<?= htmlspecialchars($filters['date_from'] ?? '') ?>">
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">To Date</label>
+                <input type="date" name="date_to" class="filter-input" 
+                       value="<?= htmlspecialchars($filters['date_to'] ?? '') ?>">
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">Sort By</label>
+                <select name="sort" class="filter-input">
+                    <option value="date_desc" <?= $sort === 'date_desc' ? 'selected' : '' ?>>Date (Newest First)</option>
+                    <option value="date_asc" <?= $sort === 'date_asc' ? 'selected' : '' ?>>Date (Oldest First)</option>
+                    <option value="name_asc" <?= $sort === 'name_asc' ? 'selected' : '' ?>>Name (A-Z)</option>
+                    <option value="name_desc" <?= $sort === 'name_desc' ? 'selected' : '' ?>>Name (Z-A)</option>
+                    <option value="rate_desc" <?= $sort === 'rate_desc' ? 'selected' : '' ?>>Attendance Rate (High-Low)</option>
+                    <option value="rate_asc" <?= $sort === 'rate_asc' ? 'selected' : '' ?>>Attendance Rate (Low-High)</option>
+                </select>
+            </div>
+            
+            <div class="filter-group filter-checkbox">
+                <label class="filter-checkbox-label">
+                    <input type="checkbox" name="has_absences" value="1" 
+                           <?= !empty($filters['has_absences']) ? 'checked' : '' ?>>
+                    <span>Show sessions with absences only</span>
+                </label>
+            </div>
+            
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                <a href="?page=sessions" class="btn btn-secondary btn-sm">Reset</a>
+            </div>
+        </form>
+    </div>
     
     <?php if (empty($sessions)): ?>
         <div class="empty-state">
@@ -60,20 +124,29 @@
                                 <a href="?page=sessions&action=take&id=<?= $session['id'] ?? 0 ?>" class="btn btn-success btn-sm">
                                     Take
                                 </a>
-                                <a href="?page=sessions&action=view&id=<?= $session['id'] ?? 0 ?>" class="btn btn-secondary btn-sm">
-                                    View
-                                </a>
-                                <a href="?page=sessions&action=export&id=<?= $session['id'] ?? 0 ?>&format=pdf" class="btn btn-secondary btn-sm">
-                                    PDF
-                                </a>
-                                <a href="?page=sessions&action=export&id=<?= $session['id'] ?? 0 ?>&format=excel" class="btn btn-secondary btn-sm">
-                                    Excel
-                                </a>
-                                <a href="?page=sessions&action=delete&id=<?= $session['id'] ?? 0 ?>"
-                                   class="btn btn-danger btn-sm"
-                                   onclick="return confirm('Are you sure you want to delete this session and all its records?')">
-                                    Delete
-                                </a>
+                                <div class="action-dropdown">
+                                    <button type="button" class="action-dropdown-toggle" onclick="toggleDropdown(this)">
+                                        Actions
+                                    </button>
+                                    <div class="action-dropdown-menu">
+                                        <a href="?page=sessions&action=view&id=<?= $session['id'] ?? 0 ?>" class="action-dropdown-item">
+                                            View Details
+                                        </a>
+                                        <div class="action-dropdown-divider"></div>
+                                        <a href="?page=sessions&action=export&id=<?= $session['id'] ?? 0 ?>&format=pdf" class="action-dropdown-item">
+                                            Export PDF
+                                        </a>
+                                        <a href="?page=sessions&action=export&id=<?= $session['id'] ?? 0 ?>&format=excel" class="action-dropdown-item">
+                                            Export Excel
+                                        </a>
+                                        <div class="action-dropdown-divider"></div>
+                                        <a href="?page=sessions&action=delete&id=<?= $session['id'] ?? 0 ?>"
+                                           class="action-dropdown-item danger"
+                                           onclick="return confirmDelete(this, '<?= htmlspecialchars(addslashes($session['session_name'] ?? 'this session')) ?>')">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

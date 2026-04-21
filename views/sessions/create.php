@@ -1,9 +1,5 @@
 <?php
-// Breadcrumb for session create
-$breadcrumbs = [
-    ['label' => 'Sessions', 'url' => '?page=sessions'],
-    ['label' => 'Create New Session']
-];
+// Breadcrumbs are now set in the controller
 ?>
 <div class="card">
     <div class="card-header">

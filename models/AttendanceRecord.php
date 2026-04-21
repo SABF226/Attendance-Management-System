@@ -144,5 +144,73 @@ class AttendanceRecord {
         $stmt = $this->db->query($sql);
         return $stmt->fetch();
     }
+    
+    /**
+     * Get attendance trend data for the last 5 sessions
+     */
+    public function getTrendData($limit = 5) {
+        $sql = "SELECT 
+                    s.id,
+                    s.session_name,
+                    s.session_date,
+                    COUNT(*) as total_members,
+                    SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END) as present_count,
+                    SUM(CASE WHEN ar.status = 'absent' THEN 1 ELSE 0 END) as absent_count,
+                    SUM(CASE WHEN ar.status = 'excused' THEN 1 ELSE 0 END) as excused_count,
+                    ROUND((SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END) / COUNT(*)) * 100, 1) as attendance_rate
+                FROM attendance_sessions s
+                LEFT JOIN attendance_records ar ON s.id = ar.session_id
+                GROUP BY s.id, s.session_name, s.session_date
+                ORDER BY s.session_date DESC
+                LIMIT ?";
+        $stmt = $this->db->query($sql, [$limit]);
+        return array_reverse($stmt->fetchAll());
+    }
+    
+    /**
+     * Get top attendees with highest attendance rates
+     */
+    public function getTopAttendees($limit = 5) {
+        $sql = "SELECT 
+                    m.id,
+                    m.name,
+                    m.field,
+                    COUNT(ar.id) as total_sessions,
+                    SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END) as present_count,
+                    ROUND((SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END) / COUNT(ar.id)) * 100, 1) as attendance_rate
+                FROM members m
+                JOIN attendance_records ar ON m.id = ar.member_id
+                GROUP BY m.id, m.name, m.field
+                HAVING COUNT(ar.id) >= 2
+                ORDER BY attendance_rate DESC, present_count DESC
+                LIMIT ?";
+        $stmt = $this->db->query($sql, [$limit]);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Get status distribution for pie chart
+     */
+    public function getStatusDistribution() {
+        $sql = "SELECT 
+                    status,
+                    COUNT(*) as count
+                FROM attendance_records
+                GROUP BY status";
+        $stmt = $this->db->query($sql);
+        $results = $stmt->fetchAll();
+        
+        $distribution = [
+            'present' => 0,
+            'absent' => 0,
+            'excused' => 0
+        ];
+        
+        foreach ($results as $row) {
+            $distribution[$row['status']] = (int)$row['count'];
+        }
+        
+        return $distribution;
+    }
 }
 

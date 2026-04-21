@@ -34,7 +34,12 @@ class MemberController {
     public function create() {
         return [
             'view' => 'views/members/form.php',
-            'data' => []
+            'data' => [
+                'breadcrumbs' => [
+                    ['label' => 'Members', 'url' => '?page=members'],
+                    ['label' => 'Add New Member']
+                ]
+            ]
         ];
     }
     
@@ -78,7 +83,13 @@ class MemberController {
         
         return [
             'view' => 'views/members/form.php',
-            'data' => ['member' => $member]
+            'data' => [
+                'member' => $member,
+                'breadcrumbs' => [
+                    ['label' => 'Members', 'url' => '?page=members'],
+                    ['label' => 'Edit Member']
+                ]
+            ]
         ];
     }
     
@@ -108,6 +119,39 @@ class MemberController {
                 'data' => ['errors' => ['Failed to update member: ' . $e->getMessage()], 'member' => $postData]
             ];
         }
+    }
+    
+    /**
+     * Display member profile with attendance history
+     */
+    public function show($id) {
+        $member = $this->memberModel->getById($id);
+        
+        if (!$member) {
+            $_SESSION['message'] = 'Member not found!';
+            $_SESSION['message_type'] = 'error';
+            $this->redirect('?page=members');
+        }
+        
+        // Get attendance history
+        $attendanceRecord = new AttendanceRecord();
+        $attendanceHistory = $attendanceRecord->getByMember($id);
+        $memberStats = $attendanceRecord->getMemberStats($id);
+        
+        // Calculate attendance rate
+        $total = $memberStats['total_sessions'] ?? 0;
+        $present = $memberStats['present'] ?? 0;
+        $memberStats['attendance_rate'] = $total > 0 ? round(($present / $total) * 100, 1) : 0;
+        
+        return [
+            'view' => 'views/members/view.php',
+            'data' => [
+                'member' => $member,
+                'attendanceHistory' => $attendanceHistory,
+                'memberStats' => $memberStats,
+                'currentPage' => 'members'
+            ]
+        ];
     }
     
     /**

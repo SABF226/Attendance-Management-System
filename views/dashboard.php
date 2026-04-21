@@ -45,6 +45,33 @@
     </div>
 </div>
 
+<!-- Charts Section -->
+<div class="dashboard-charts">
+    <!-- Attendance Trend Chart -->
+    <div class="card chart-card">
+        <h3 class="chart-title">Attendance Trend (Last 5 Sessions)</h3>
+        <div class="chart-container">
+            <canvas id="attendanceTrendChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Status Distribution Chart -->
+    <div class="card chart-card">
+        <h3 class="chart-title">Status Distribution</h3>
+        <div class="chart-container pie-chart-container">
+            <canvas id="statusPieChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Top Attendees -->
+    <div class="card chart-card">
+        <h3 class="chart-title">Top Attendees</h3>
+        <div id="topAttendeesList" class="top-attendees-container">
+            <p class="loading-text">Loading...</p>
+        </div>
+    </div>
+</div>
+
 <!-- Recent Sessions -->
 <div class="card">
     <h2 class="card-title">Recent Sessions</h2>
@@ -85,3 +112,4 @@
     <?php endif; ?>
 </div>
 
+<script src="assets/js/dashboard.js"></script>

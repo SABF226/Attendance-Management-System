@@ -20,10 +20,30 @@ class AttendanceController {
     }
     
     /**
-     * Display all sessions
+     * Display all sessions with filtering
      */
     public function sessionIndex() {
-        $sessions = $this->sessionModel->getAll();
+        // Build filters from query parameters
+        $filters = [];
+        if (!empty($_GET['date_from'])) {
+            $filters['date_from'] = $_GET['date_from'];
+        }
+        if (!empty($_GET['date_to'])) {
+            $filters['date_to'] = $_GET['date_to'];
+        }
+        if (!empty($_GET['has_absences'])) {
+            $filters['has_absences'] = true;
+        }
+        
+        // Get sort parameter
+        $sort = $_GET['sort'] ?? 'date_desc';
+        
+        // Get filtered sessions
+        if (!empty($filters) || $sort !== 'date_desc') {
+            $sessions = $this->sessionModel->getFiltered($filters, $sort);
+        } else {
+            $sessions = $this->sessionModel->getAll();
+        }
         
         // Get stats for each session
         foreach ($sessions as &$session) {
@@ -31,9 +51,32 @@ class AttendanceController {
             $session['present_count'] = $stats['present_count'] ?? 0;
             $session['absent_count'] = $stats['absent_count'] ?? 0;
             $session['excused_count'] = $stats['excused_count'] ?? 0;
+            
+            // Calculate attendance rate for sorting
+            $total = $session['present_count'] + $session['absent_count'] + $session['excused_count'];
+            $session['attendance_rate'] = $total > 0 ? ($session['present_count'] / $total) * 100 : 0;
         }
         
-        return $sessions;
+        // Sort by attendance rate if requested
+        if ($sort === 'rate_asc') {
+            usort($sessions, function($a, $b) {
+                return $a['attendance_rate'] <=> $b['attendance_rate'];
+            });
+        } elseif ($sort === 'rate_desc') {
+            usort($sessions, function($a, $b) {
+                return $b['attendance_rate'] <=> $a['attendance_rate'];
+            });
+        }
+        
+        // Get monthly statistics
+        $monthlyStats = $this->sessionModel->getMonthlyStats();
+        
+        return [
+            'sessions' => $sessions,
+            'monthlyStats' => $monthlyStats,
+            'filters' => $filters,
+            'sort' => $sort
+        ];
     }
     
     /**
@@ -42,7 +85,13 @@ class AttendanceController {
     public function create() {
         return [
             'view' => 'views/sessions/create.php',
-            'data' => ['session' => []]
+            'data' => [
+                'session' => [],
+                'breadcrumbs' => [
+                    ['label' => 'Sessions', 'url' => '?page=sessions'],
+                    ['label' => 'Create New Session']
+                ]
+            ]
         ];
     }
     
@@ -114,7 +163,11 @@ class AttendanceController {
             'data' => [
                 'session' => $session,
                 'members' => $members,
-                'attendanceRecords' => $attendanceRecords
+                'attendanceRecords' => $attendanceRecords,
+                'breadcrumbs' => [
+                    ['label' => 'Sessions', 'url' => '?page=sessions'],
+                    ['label' => $session['session_name'] ?? 'Take Attendance']
+                ]
             ]
         ];
     }
@@ -161,7 +214,11 @@ class AttendanceController {
             'view' => 'views/sessions/view.php',
             'data' => [
                 'session' => $session,
-                'records' => $records
+                'records' => $records,
+                'breadcrumbs' => [
+                    ['label' => 'Sessions', 'url' => '?page=sessions'],
+                    ['label' => $session['session_name'] ?? 'Session Details']
+                ]
             ]
         ];
     }
