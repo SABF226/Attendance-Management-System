@@ -32,15 +32,29 @@ class Member {
     }
     
     /**
+     * Get member by email
+     */
+    public function getByEmail($email) {
+        $sql = "SELECT * FROM members WHERE email = ?";
+        $stmt = $this->db->query($sql, [$email]);
+        return $stmt->fetch();
+    }
+    
+    /**
      * Create new member
      */
     public function create($data) {
-        $sql = "INSERT INTO members (name, field, phone, email) VALUES (?, ?, ?, ?)";
+        $password = isset($data['password']) && !empty($data['password']) ? password_hash($data['password'], PASSWORD_BCRYPT) : null;
+        $role = $data['role'] ?? 'member';
+        
+        $sql = "INSERT INTO members (name, field, phone, email, password, role) VALUES (?, ?, ?, ?, ?, ?)";
         $this->db->query($sql, [
             $data['name'],
             $data['field'],
             $data['phone'],
-            $data['email']
+            $data['email'],
+            $password,
+            $role
         ]);
         return $this->db->lastInsertId();
     }
@@ -49,15 +63,72 @@ class Member {
      * Update existing member
      */
     public function update($id, $data) {
-        $sql = "UPDATE members SET name = ?, field = ?, phone = ?, email = ? WHERE id = ?";
-        $stmt = $this->db->query($sql, [
-            $data['name'],
-            $data['field'],
-            $data['phone'],
-            $data['email'],
-            $id
-        ]);
+        $role = $data['role'] ?? 'member';
+        
+        if (isset($data['password']) && !empty($data['password'])) {
+            $passwordHash = password_hash($data['password'], PASSWORD_BCRYPT);
+            $sql = "UPDATE members SET name = ?, field = ?, phone = ?, email = ?, password = ?, role = ? WHERE id = ?";
+            $params = [
+                $data['name'],
+                $data['field'],
+                $data['phone'],
+                $data['email'],
+                $passwordHash,
+                $role,
+                $id
+            ];
+        } else {
+            $sql = "UPDATE members SET name = ?, field = ?, phone = ?, email = ?, role = ? WHERE id = ?";
+            $params = [
+                $data['name'],
+                $data['field'],
+                $data['phone'],
+                $data['email'],
+                $role,
+                $id
+            ];
+        }
+        
+        $stmt = $this->db->query($sql, $params);
         return $stmt->rowCount();
+    }
+    
+    /**
+     * Register a new member or claim an existing member profile
+     */
+    public function registerMember($data) {
+        $email = $data['email'];
+        $existing = $this->getByEmail($email);
+        $passwordHash = password_hash($data['password'], PASSWORD_BCRYPT);
+        
+        if ($existing) {
+            // If they already have a password set, they are already registered!
+            if (!empty($existing['password'])) {
+                return false;
+            }
+            
+            // Otherwise, they are claiming an existing profile created by an admin
+            $sql = "UPDATE members SET name = ?, field = ?, phone = ?, password = ?, role = 'member' WHERE id = ?";
+            $this->db->query($sql, [
+                $data['name'],
+                $data['field'],
+                $data['phone'],
+                $passwordHash,
+                $existing['id']
+            ]);
+            return $existing['id'];
+        } else {
+            // Register as a brand new member
+            $sql = "INSERT INTO members (name, field, phone, email, password, role) VALUES (?, ?, ?, ?, ?, 'member')";
+            $this->db->query($sql, [
+                $data['name'],
+                $data['field'],
+                $data['phone'],
+                $email,
+                $passwordHash
+            ]);
+            return $this->db->lastInsertId();
+        }
     }
     
     /**

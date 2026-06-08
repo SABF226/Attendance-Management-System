@@ -67,8 +67,8 @@ body {
 }
 
 .sidebar-logo {
-    width: 40px;
-    height: 40px;
+    width: 140px;
+    height: 110px;
     border-radius: 8px;
     flex-shrink: 0;
 }
@@ -1173,7 +1173,105 @@ form[method="GET"] .form-control {
     text-decoration: underline;
 }
 
+/* Responsive Table to Card View */
+.table-card-view {
+    display: none;
+}
+
+.data-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid rgba(128, 188, 203, 0.3);
+}
+
+.data-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.data-card-row:last-child {
+    border-bottom: none;
+}
+
+.data-card-label {
+    color: #666;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.data-card-value {
+    color: #1D1F5A;
+    font-weight: 500;
+    text-align: right;
+}
+
+.data-card-stats {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    padding: 0.75rem 0;
+}
+
+.data-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid #eee;
+}
+
+@media (max-width: 767px) {
+    .table-card-view {
+        display: block;
+    }
+    
+    .table-responsive table {
+        display: none;
+    }
+    
+    .data-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Form Validation Styles */
+.form-control.is-invalid {
+    border-color: #B61F24;
+    box-shadow: 0 0 0 3px rgba(182, 31, 36, 0.1);
+}
+
+.form-control.is-valid {
+    border-color: #80BCCB;
+    box-shadow: 0 0 0 3px rgba(128, 188, 203, 0.2);
+}
+
+.invalid-feedback {
+    color: #B61F24;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.valid-feedback {
+    color: #1D1F5A;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
 /* Dashboard specific */
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-style: italic;
+}
+
 .stat-card {
     transition: transform 0.3s ease;
     padding: 1rem;
@@ -1593,6 +1691,202 @@ footer {
     .container {
         margin: 0;
         padding: 0;
+    }
+}
+
+/* ============================================
+   LEADERBOARD & PERSONAL MEMBER DASHBOARD STYLES
+   ============================================ */
+.leaderboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.leaderboard-search {
+    position: relative;
+    width: 300px;
+    max-width: 100%;
+}
+
+.leaderboard-search input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.leaderboard-search input:focus {
+    border-color: #80BCCB;
+    box-shadow: 0 0 10px rgba(128, 188, 203, 0.25);
+}
+
+.leaderboard-search .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #666;
+}
+
+/* Podium Design */
+.leaderboard-podium {
+    background-color: #FCFBFF;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(29, 31, 90, 0.08);
+}
+
+.podium-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    min-height: 280px;
+}
+
+.podium-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 180px;
+    transition: transform 0.3s ease;
+}
+
+.podium-column:hover {
+    transform: translateY(-5px);
+}
+
+.podium-medal {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    animation: bounce 2s infinite ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.podium-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #1D1F5A;
+    color: #FCFBFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: 3px solid transparent;
+    box-shadow: 0 8px 20px rgba(29, 31, 90, 0.15);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+}
+
+.podium-gold .podium-avatar { border-color: #f1c40f; background-color: #f39c12; }
+.podium-silver .podium-avatar { border-color: #bdc3c7; background-color: #7f8c8d; }
+.podium-bronze .podium-avatar { border-color: #e67e22; background-color: #d35400; }
+
+.podium-name {
+    font-weight: 700;
+    color: #1D1F5A;
+    font-size: 0.95rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.podium-field {
+    font-size: 0.75rem;
+    color: #666;
+    margin: 2px 0 8px;
+    text-align: center;
+}
+
+.podium-rate {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1D1F5A;
+    margin-bottom: 0.75rem;
+}
+
+.podium-bar {
+    width: 100%;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.podium-gold .podium-bar {
+    height: 140px;
+    background: linear-gradient(to top, #f39c12, #f1c40f);
+}
+
+.podium-silver .podium-bar {
+    height: 100px;
+    background: linear-gradient(to top, #7f8c8d, #bdc3c7);
+}
+
+.podium-bronze .podium-bar {
+    height: 70px;
+    background: linear-gradient(to top, #d35400, #e67e22);
+}
+
+.podium-rank-text {
+    font-size: 2rem;
+    font-weight: 800;
+    color: rgba(252, 251, 255, 0.7);
+}
+
+/* Progress bar classes for leaderboard standings */
+.progress-success { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+.progress-warning { background: linear-gradient(90deg, #f1c40f, #f39c12); }
+.progress-danger { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+
+/* Member dashboard badges */
+.badge-role {
+    border: 1px solid transparent;
+}
+.badge-champion { background-color: rgba(241, 196, 15, 0.15) !important; color: #f39c12 !important; border-color: #f1c40f !important; }
+.badge-gold { background-color: rgba(230, 126, 34, 0.15) !important; color: #e67e22 !important; border-color: #d35400 !important; }
+.badge-silver { background-color: rgba(52, 152, 219, 0.15) !important; color: #3498db !important; border-color: #2980b9 !important; }
+.badge-bronze { background-color: rgba(149, 165, 166, 0.15) !important; color: #95a5a6 !important; border-color: #7f8c8d !important; }
+
+/* Responsive adjustments for Podium */
+@media (max-width: 600px) {
+    .podium-container {
+        flex-direction: column;
+        align-items: center;
+        min-height: auto;
+        gap: 1.5rem;
+    }
+    
+    .podium-column {
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .podium-bar {
+        height: 40px !important;
+        border-radius: 10px;
+    }
+    
+    .podium-rank-text {
+        font-size: 1.25rem;
     }
 }
 

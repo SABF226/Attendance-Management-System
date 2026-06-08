@@ -99,6 +99,14 @@ class AttendanceController {
      * Store new session
      */
     public function storeSession($postData) {
+        // Rate limiting: max 10 session creations per 5 minutes
+        if (!Security::checkRateLimit('session_create', 10, 300)) {
+            return [
+                'view' => 'views/sessions/create.php',
+                'data' => ['errors' => ['Too many requests. Please try again later.'], 'session' => $postData]
+            ];
+        }
+        
         $errors = $this->validateSession($postData);
         
         if (!empty($errors)) {
@@ -176,6 +184,13 @@ class AttendanceController {
      * Save attendance records
      */
     public function saveAttendance($sessionId, $postData) {
+        // Rate limiting: max 30 attendance saves per 5 minutes
+        if (!Security::checkRateLimit('attendance_save', 30, 300)) {
+            $_SESSION['message'] = 'Too many requests. Please try again later.';
+            $_SESSION['message_type'] = 'error';
+            $this->redirect('?page=sessions&action=take&id=' . $sessionId);
+        }
+        
         $attendance = $postData['attendance'] ?? [];
         
         if (empty($attendance)) {

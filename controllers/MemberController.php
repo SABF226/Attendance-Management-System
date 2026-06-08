@@ -47,6 +47,14 @@ class MemberController {
      * Store new member
      */
     public function store($postData) {
+        // Rate limiting: max 10 creations per 5 minutes
+        if (!Security::checkRateLimit('member_create', 10, 300)) {
+            return [
+                'view' => 'views/members/form.php',
+                'data' => ['errors' => ['Too many requests. Please try again later.'], 'old' => $postData]
+            ];
+        }
+        
         $errors = $this->validate($postData);
         
         if (!empty($errors)) {
@@ -97,6 +105,15 @@ class MemberController {
      * Update member
      */
     public function update($id, $postData) {
+        // Rate limiting: max 20 updates per 5 minutes
+        if (!Security::checkRateLimit('member_update', 20, 300)) {
+            $postData['id'] = $id;
+            return [
+                'view' => 'views/members/form.php',
+                'data' => ['errors' => ['Too many requests. Please try again later.'], 'member' => $postData]
+            ];
+        }
+        
         $errors = $this->validate($postData, $id);
         
         if (!empty($errors)) {

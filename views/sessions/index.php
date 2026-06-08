@@ -152,6 +152,35 @@
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            
+            <!-- Mobile Card View -->
+            <div class="table-card-view">
+                <?php foreach ($sessions as $session): ?>
+                    <div class="data-card">
+                        <div class="data-card-row">
+                            <span class="data-card-label">ID</span>
+                            <span class="data-card-value"><?= htmlspecialchars($session['id'] ?? '') ?></span>
+                        </div>
+                        <div class="data-card-row">
+                            <span class="data-card-label">Date</span>
+                            <span class="data-card-value"><?= htmlspecialchars(date('M d, Y', strtotime($session['session_date'] ?? 'now'))) ?></span>
+                        </div>
+                        <div class="data-card-row">
+                            <span class="data-card-label">Session</span>
+                            <span class="data-card-value"><?= htmlspecialchars($session['session_name'] ?? '') ?></span>
+                        </div>
+                        <div class="data-card-row data-card-stats">
+                            <span class="badge badge-present"><?= $session['present_count'] ?? 0 ?> Present</span>
+                            <span class="badge badge-absent"><?= $session['absent_count'] ?? 0 ?> Absent</span>
+                            <span class="badge badge-excused"><?= $session['excused_count'] ?? 0 ?> Excused</span>
+                        </div>
+                        <div class="data-card-actions">
+                            <a href="?page=sessions&action=take&id=<?= $session['id'] ?? 0 ?>" class="btn btn-success btn-sm">Take</a>
+                            <a href="?page=sessions&action=view&id=<?= $session['id'] ?? 0 ?>" class="btn btn-secondary btn-sm">View</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
     <?php endif; ?>
 </div>

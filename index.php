@@ -16,7 +16,8 @@ spl_autoload_register(function ($class) {
     $paths = [
         __DIR__ . '/models/',
         __DIR__ . '/controllers/',
-        __DIR__ . '/config/'
+        __DIR__ . '/config/',
+        __DIR__ . '/helpers/'
     ];
     
     foreach ($paths as $path) {
@@ -29,9 +30,14 @@ spl_autoload_register(function ($class) {
 });
 
 // Get current page and action
-$page = $_GET['page'] ?? 'dashboard';
-$action = $_GET['action'] ?? 'index';
-$id = $_GET['id'] ?? null;
+$page = Security::string($_GET['page'] ?? 'dashboard', 50);
+$action = Security::string($_GET['action'] ?? 'index', 50);
+$id = Security::int($_GET['id'] ?? null);
+
+// Validate CSRF token for all POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    Security::requireCsrf();
+}
 
 // Check if this is an export action (skip headers)
 $isExport = ($page === 'sessions' && $action === 'export');
@@ -39,25 +45,91 @@ $isExport = ($page === 'sessions' && $action === 'export');
 // Include database config
 require_once __DIR__ . '/config/database.php';
 
+// Include security configuration (headers, session hardening)
+// Skip headers for export actions (FPDF requires raw output)
+if (!$isExport) {
+    require_once __DIR__ . '/config/security.php';
+}
+
 // Determine current page for navigation
 $currentPage = $page;
 
 // Initialize breadcrumbs variable
 $breadcrumbs = null;
 
+// Session-based authentication middleware
+$isLoggedIn = isset($_SESSION['user_id']);
+
+if (!$isLoggedIn) {
+    // If not logged in, force redirect to auth page (unless performing auth actions)
+    if ($page !== 'auth' || !in_array($action, ['index', 'login', 'register'])) {
+        header('Location: index.php?page=auth');
+        exit;
+    }
+} else {
+    // If logged in, restrict normal members to dashboard, leaderboard, and logout
+    $userRole = $_SESSION['user_role'] ?? 'member';
+    if ($userRole === 'member') {
+        if (!in_array($page, ['dashboard', 'leaderboard']) && !($page === 'auth' && $action === 'logout')) {
+            $_SESSION['error_message'] = 'Access Denied: Administrative permissions required.';
+            header('Location: index.php?page=dashboard');
+            exit;
+        }
+    }
+}
+
 try {
     // Route handling
     switch ($page) {
+        // Auth routing
+        case 'auth':
+            $controller = new AuthController();
+            switch ($action) {
+                case 'index':
+                    $result = $controller->index();
+                    include $result['view'];
+                    exit;
+                case 'login':
+                    $controller->login();
+                    break;
+                case 'register':
+                    $controller->register();
+                    break;
+                case 'logout':
+                    $controller->logout();
+                    break;
+                default:
+                    $result = $controller->index();
+                    include $result['view'];
+                    exit;
+            }
+            break;
+            
+        // Leaderboard routing
+        case 'leaderboard':
+            $recordModel = new AttendanceRecord();
+            $topAttendees = $recordModel->getTopAttendees(20);
+            require_once __DIR__ . '/views/header.php';
+            include __DIR__ . '/views/leaderboard.php';
+            break;
+
         // Dashboard
         case 'dashboard':
             $memberModel = new Member();
             $sessionModel = new AttendanceSession();
             $recordModel = new AttendanceRecord();
             
-            $totalMembers = $memberModel->count();
-            $totalSessions = $sessionModel->count();
-            $recentSessions = $sessionModel->getRecent(5);
-            $overallStats = $recordModel->getOverallStats();
+            if ($_SESSION['user_role'] === 'member') {
+                $myId = $_SESSION['user_id'];
+                $myStats = $recordModel->getMemberStats($myId);
+                $myHistory = $recordModel->getByMember($myId);
+                $overallStats = $recordModel->getOverallStats();
+            } else {
+                $totalMembers = $memberModel->count();
+                $totalSessions = $sessionModel->count();
+                $recentSessions = $sessionModel->getRecent(5);
+                $overallStats = $recordModel->getOverallStats();
+            }
             
             require_once __DIR__ . '/views/header.php';
             include __DIR__ . '/views/dashboard.php';
@@ -231,10 +303,17 @@ try {
             $sessionModel = new AttendanceSession();
             $recordModel = new AttendanceRecord();
             
-            $totalMembers = $memberModel->count();
-            $totalSessions = $sessionModel->count();
-            $recentSessions = $sessionModel->getRecent(5);
-            $overallStats = $recordModel->getOverallStats();
+            if ($_SESSION['user_role'] === 'member') {
+                $myId = $_SESSION['user_id'];
+                $myStats = $recordModel->getMemberStats($myId);
+                $myHistory = $recordModel->getByMember($myId);
+                $overallStats = $recordModel->getOverallStats();
+            } else {
+                $totalMembers = $memberModel->count();
+                $totalSessions = $sessionModel->count();
+                $recentSessions = $sessionModel->getRecent(5);
+                $overallStats = $recordModel->getOverallStats();
+            }
             
             require_once __DIR__ . '/views/header.php';
             include __DIR__ . '/views/dashboard.php';

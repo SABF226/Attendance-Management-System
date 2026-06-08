@@ -18,6 +18,7 @@
     <?php endif; ?>
     
     <form method="POST" action="?page=sessions&action=store">
+        <?= Security::csrfField() ?>
         <div class="form-row">
             <div class="form-group">
                 <label for="session_name" class="form-label">Session Name *</label>

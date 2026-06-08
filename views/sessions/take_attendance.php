@@ -3,7 +3,7 @@
 ?>
 <div class="card">
     <div class="take-attendance-logo">
-        <img src="assets/logo_bit_en.jpg" alt="English Club Logo">
+        <img src="<?= Security::baseUrl('assets/logo_bit_en.jpg') ?>" alt="English Club Logo">
     </div>
     <div class="card-header">
         <h2 class="card-title">Take Attendance: <?= htmlspecialchars($session['session_name'] ?? '') ?></h2>
@@ -39,6 +39,7 @@
         </div>
         
         <form method="POST" action="?page=sessions&action=save&id=<?= $session['id'] ?? 0 ?>" class="attendance-form" id="attendanceForm">
+            <?= Security::csrfField() ?>
             <div class="table-responsive">
                 <table class="attendance-table">
                     <thead>

@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?? 'English Club Attendance' ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="assets/js/main.js" defer></script>
+    <link rel="stylesheet" href="<?= Security::baseUrl('assets/css/style.css') ?>">
+    <script src="<?= Security::baseUrl('assets/js/chart.umd.min.js') ?>"></script>
+    <script src="<?= Security::baseUrl('assets/js/main.js') ?>"></script>
 </head>
 <body>
     <!-- Sidebar Navigation -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-brand">
-                <img src="assets/logo_bit_en.jpg" alt="Logo" class="sidebar-logo">
-                <span class="sidebar-title">EngClub</span>
+                <img src="<?= Security::baseUrl('assets/logo_bit_en.jpg') ?>" alt="Logo" class="sidebar-logo">
+                <!--<span class="sidebar-title">EngClub</span> -->
             </div>
             <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()">
                 <span class="toggle-icon">◀</span>
@@ -31,6 +31,8 @@
                     <span class="sidebar-text">Dashboard</span>
                 </a>
             </li>
+            
+            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
             <li class="sidebar-item">
                 <a href="?page=members" class="sidebar-link <?= ($currentPage ?? '') === 'members' ? 'active' : '' ?>">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -53,10 +55,37 @@
                     <span class="sidebar-text">Sessions</span>
                 </a>
             </li>
+            <?php endif; ?>
+            
+            <li class="sidebar-item">
+                <a href="?page=leaderboard" class="sidebar-link <?= ($currentPage ?? '') === 'leaderboard' ? 'active' : '' ?>">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="7"></circle>
+                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                    </svg>
+                    <span class="sidebar-text">Leaderboard</span>
+                </a>
+            </li>
         </ul>
         
-        <div class="sidebar-footer">
-            <span class="sidebar-footer-text">v2.0</span>
+        <div class="sidebar-footer" style="padding: 15px; border-top: 1px solid rgba(252,251,255,0.1); display: flex; flex-direction: column; gap: 8px;">
+            <div class="user-profile-badge" style="display: flex; align-items: center; gap: 10px;">
+                <div class="user-avatar" style="width: 35px; height: 35px; border-radius: 50%; background-color: #80BCCB; color: #1D1F5A; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0; text-transform: uppercase;">
+                    <?= mb_substr($_SESSION['user_name'] ?? 'U', 0, 2) ?>
+                </div>
+                <div class="user-info" style="display: flex; flex-direction: column; min-width: 0;">
+                    <span class="user-name" style="font-size: 13px; font-weight: bold; color: #FCFBFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?= htmlspecialchars($_SESSION['user_name'] ?? '') ?></span>
+                    <span class="user-role" style="font-size: 10px; color: #80BCCB; font-weight: 600; text-transform: uppercase;"><?= htmlspecialchars($_SESSION['user_role'] ?? '') ?></span>
+                </div>
+            </div>
+            <a href="?page=auth&action=logout" class="sidebar-link logout-link" style="padding: 8px 10px; border-radius: 6px; font-size: 12px; color: #B61F24; display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: bold; transition: all 0.2s; background: rgba(182, 31, 36, 0.08);">
+                <svg class="sidebar-icon" style="width: 16px; height: 16px; stroke: #B61F24;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span class="sidebar-text" style="color: #B61F24;">Logout</span>
+            </a>
         </div>
     </nav>
     

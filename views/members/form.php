@@ -18,6 +18,7 @@
     <?php endif; ?>
     
     <form method="POST" action="?page=members<?= isset($member) ? '&action=update&id=' . $member['id'] : '&action=store' ?>">
+        <?= Security::csrfField() ?>
         <div class="form-row">
             <div class="form-group">
                 <label for="name" class="form-label">Full Name *</label>

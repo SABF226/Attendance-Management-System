@@ -67,6 +67,42 @@
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            
+            <!-- Mobile Card View -->
+            <div class="table-card-view">
+                <?php foreach ($members as $member): ?>
+                    <div class="data-card">
+                        <div class="data-card-row">
+                            <span class="data-card-label">ID</span>
+                            <span class="data-card-value"><?= htmlspecialchars($member['id'] ?? '') ?></span>
+                        </div>
+                        <div class="data-card-row">
+                            <span class="data-card-label">Name</span>
+                            <a href="?page=members&action=view&id=<?= $member['id'] ?? 0 ?>" class="data-card-value member-link">
+                                    <?= htmlspecialchars($member['name'] ?? '') ?>
+                            </a>
+                        </div>
+                        <div class="data-card-row">
+                            <span class="data-card-label">Field</span>
+                            <span class="data-card-value"><?= htmlspecialchars($member['field'] ?? '') ?></span>
+                        </div>
+                        <div class="data-card-row">
+                            <span class="data-card-label">Phone</span>
+                            <span class="data-card-value"><?= htmlspecialchars($member['phone'] ?? '') ?></span>
+                        </div>
+                        <div class="data-card-row">
+                            <span class="data-card-label">Email</span>
+                            <span class="data-card-value"><?= htmlspecialchars($member['email'] ?? '') ?></span>
+                        </div>
+                        <div class="data-card-actions">
+                            <a href="?page=members&action=edit&id=<?= $member['id'] ?? 0 ?>" class="btn btn-secondary btn-sm">Edit</a>
+                            <a href="?page=members&action=delete&id=<?= $member['id'] ?? 0 ?>" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirmDelete(this, '<?= htmlspecialchars(addslashes($member['name'] ?? 'this member')) ?>')">Delete</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
         
         <div style="margin-top: 1.5rem; text-align: center;">

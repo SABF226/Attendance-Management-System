@@ -30,4 +30,3 @@
 - [x] 5.1 Test on various mobile screen sizes
 - [x] 5.2 Fix any layout issues
 - [x] 5.3 Ensure accessibility
-

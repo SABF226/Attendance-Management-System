@@ -7,7 +7,28 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize charts if on dashboard page
     if (document.getElementById('attendanceTrendChart')) {
-        loadDashboardData();
+        // Check if Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded! Waiting...');
+            // Wait for Chart.js to load
+            const checkChart = setInterval(function() {
+                if (typeof Chart !== 'undefined') {
+                    clearInterval(checkChart);
+                    console.log('Chart.js is now loaded');
+                    loadDashboardData();
+                }
+            }, 100);
+            // Timeout after 5 seconds
+            setTimeout(function() {
+                clearInterval(checkChart);
+                if (typeof Chart === 'undefined') {
+                    showDashboardError('Chart library failed to load. Check internet connection.');
+                }
+            }, 5000);
+        } else {
+            console.log('Chart.js is ready');
+            loadDashboardData();
+        }
     }
 });
 
@@ -15,27 +36,70 @@ document.addEventListener('DOMContentLoaded', function() {
  * Fetch dashboard data from API and render charts
  */
 function loadDashboardData() {
-    fetch('api/dashboard_stats.php')
-        .then(response => response.json())
+    // Use absolute path for API endpoint
+    const basePath = window.location.pathname.includes('/attendance-list/') ? '/attendance-list/' : '/';
+    const apiUrl = window.location.origin + basePath + 'api/dashboard_stats.php';
+    
+    console.log('Fetching dashboard data from:', apiUrl);
+    
+    fetch(apiUrl)
+        .then(response => {
+            console.log('API Response status:', response.status);
+            if (!response.ok) {
+                throw new Error('HTTP error! status: ' + response.status);
+            }
+            return response.json();
+        })
         .then(result => {
+            console.log('API Result:', result);
             if (result.success && result.data) {
                 renderAttendanceTrendChart(result.data.trend);
                 renderStatusPieChart(result.data.statusDistribution);
                 renderTopAttendees(result.data.topAttendees);
             } else {
-                console.error('Failed to load dashboard data:', result.error);
+                console.error('API returned error:', result.error);
+                showDashboardError('Error: ' + (result.error || 'Unknown error'));
             }
         })
         .catch(error => {
-            console.error('Error loading dashboard data:', error);
+            console.error('Network error:', error);
+            showDashboardError('Network error. Check console (F12) for details.');
         });
+}
+
+/**
+ * Show error message in dashboard stats areas
+ */
+function showDashboardError(message) {
+    const containers = [
+        { id: 'attendanceTrendChart', parent: true },
+        { id: 'statusPieChart', parent: true },
+        { id: 'topAttendeesList', parent: false }
+    ];
+    
+    containers.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) {
+            const target = item.parent ? el.parentElement : el;
+            target.innerHTML = '<p class="no-data">' + message + '</p>';
+        }
+    });
 }
 
 /**
  * Render Attendance Trend Line Chart
  */
 function renderAttendanceTrendChart(trendData) {
-    const ctx = document.getElementById('attendanceTrendChart').getContext('2d');
+    const canvas = document.getElementById('attendanceTrendChart');
+    if (!canvas) return;
+    
+    // Check if no data available
+    if (!trendData || trendData.length === 0) {
+        canvas.parentElement.innerHTML = '<p class="no-data">No session data available</p>';
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
     
     const labels = trendData.map(session => {
         const date = new Date(session.session_date);
@@ -117,7 +181,17 @@ function renderAttendanceTrendChart(trendData) {
  * Render Status Distribution Pie Chart
  */
 function renderStatusPieChart(distribution) {
-    const ctx = document.getElementById('statusPieChart').getContext('2d');
+    const canvas = document.getElementById('statusPieChart');
+    if (!canvas) return;
+    
+    // Check if no data available
+    const hasData = distribution && (distribution.present > 0 || distribution.absent > 0 || distribution.excused > 0);
+    if (!hasData) {
+        canvas.parentElement.innerHTML = '<p class="no-data">No attendance data available</p>';
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
     
     const data = {
         labels: ['Present', 'Absent', 'Excused'],
