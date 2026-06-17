@@ -57,6 +57,19 @@
             </li>
             <?php endif; ?>
             
+            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'member'): ?>
+            <li class="sidebar-item">
+                <a href="?page=qr&action=scanner" class="sidebar-link <?= (($currentPage ?? '') === 'qr') ? 'active' : '' ?>">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <path d="M14 14h2v2h-2zM18 14h3v3M14 18h3v3M18 18h3v3"/>
+                    </svg>
+                    <span class="sidebar-text">Scan QR</span>
+                </a>
+            </li>
+            <?php endif; ?>
+
             <li class="sidebar-item">
                 <a href="?page=leaderboard" class="sidebar-link <?= ($currentPage ?? '') === 'leaderboard' ? 'active' : '' ?>">
                     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -148,6 +148,42 @@ class AttendanceSession {
     }
     
     /**
+     * Generate a QR token for a session (valid for $durationMinutes minutes).
+     * Duration is clamped to a sane range (1–1440 min); defaults to 30.
+     */
+    public function generateQRCode($sessionId, $durationMinutes = 30) {
+        $durationMinutes = (int)$durationMinutes;
+        if ($durationMinutes < 1 || $durationMinutes > 1440) {
+            $durationMinutes = 30;
+        }
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$durationMinutes} minutes"));
+        $this->db->query(
+            "UPDATE attendance_sessions SET qr_code_token = ?, qr_code_expires_at = ?, is_qr_active = 1 WHERE id = ?",
+            [$token, $expiresAt, $sessionId]
+        );
+        return $token;
+    }
+
+    /**
+     * Check if a QR token is valid and not expired
+     */
+    public function isQRCodeValid($sessionId, $token) {
+        $stmt = $this->db->query(
+            "SELECT id FROM attendance_sessions WHERE id = ? AND qr_code_token = ? AND is_qr_active = 1 AND qr_code_expires_at > NOW()",
+            [$sessionId, $token]
+        );
+        return $stmt->fetch() !== false;
+    }
+
+    /**
+     * Deactivate a session's QR code
+     */
+    public function deactivateQRCode($sessionId) {
+        $this->db->query("UPDATE attendance_sessions SET is_qr_active = 0 WHERE id = ?", [$sessionId]);
+    }
+
+    /**
      * Get monthly statistics for sessions
      */
     public function getMonthlyStats() {

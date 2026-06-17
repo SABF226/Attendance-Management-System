@@ -35,7 +35,9 @@ $action = Security::string($_GET['action'] ?? 'index', 50);
 $id = Security::int($_GET['id'] ?? null);
 
 // Validate CSRF token for all POST requests
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Exception: QR scan endpoint uses JSON body with its own CSRF verification
+$isQrScan = ($page === 'qr' && $action === 'scan');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isQrScan) {
     Security::requireCsrf();
 }
 
@@ -70,7 +72,7 @@ if (!$isLoggedIn) {
     // If logged in, restrict normal members to dashboard, leaderboard, and logout
     $userRole = $_SESSION['user_role'] ?? 'member';
     if ($userRole === 'member') {
-        if (!in_array($page, ['dashboard', 'leaderboard']) && !($page === 'auth' && $action === 'logout')) {
+        if (!in_array($page, ['dashboard', 'leaderboard', 'qr']) && !($page === 'auth' && $action === 'logout')) {
             $_SESSION['error_message'] = 'Access Denied: Administrative permissions required.';
             header('Location: index.php?page=dashboard');
             exit;
@@ -297,6 +299,28 @@ try {
             }
             break;
             
+        // QR Code attendance
+        case 'qr':
+            $controller = new QRController();
+            switch ($action) {
+                case 'display':
+                    $controller->display($id);
+                    break;
+                case 'deactivate':
+                    $controller->deactivate($id);
+                    break;
+                case 'scan':
+                    $controller->scan();
+                    exit;
+                case 'scanner':
+                    $controller->scannerPage();
+                    break;
+                default:
+                    header('Location: index.php?page=sessions');
+                    exit;
+            }
+            break;
+
         // Default to dashboard
         default:
             $memberModel = new Member();

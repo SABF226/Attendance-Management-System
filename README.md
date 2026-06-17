@@ -216,12 +216,19 @@ tail -f /var/www/html/attendance-list/logs/api_errors.log
 
 ## 📝 Roadmap
 
-- [ ] **User Authentication** - Login system with role-based access
+**Delivered**
+- [x] **User Authentication** - Login system with role-based access (admin / member)
+- [x] **QR Code Check-In** - Self-service attendance via expiring per-session QR codes
+- [x] **Gamification** - XP points and a top-attendees leaderboard
+
+**Planned**
 - [ ] **Email Notifications** - Attendance reminders and reports
-- [ ] **Advanced Analytics** - Attendance trends by member, field of study
+- [ ] **Advanced Analytics** - Per-member stats done; trends **by field of study** still pending
 - [ ] **Multi-language Support** - English and other languages
 - [ ] **Mobile App** - PWA or native mobile application
 - [ ] **Backup & Restore** - Database backup functionality
+
+> 🔭 A full rebuild of this app on the MERN stack is planned — see [MERN_REDESIGN.md](MERN_REDESIGN.md) for the design and phased implementation plan.
 
 ---
 

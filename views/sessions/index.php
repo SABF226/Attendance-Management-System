@@ -124,6 +124,9 @@
                                 <a href="?page=sessions&action=take&id=<?= $session['id'] ?? 0 ?>" class="btn btn-success btn-sm">
                                     Take
                                 </a>
+                                <a href="?page=qr&action=display&id=<?= $session['id'] ?? 0 ?>" class="btn btn-primary btn-sm" title="Show QR Code">
+                                    QR
+                                </a>
                                 <div class="action-dropdown">
                                     <button type="button" class="action-dropdown-toggle" onclick="toggleDropdown(this)">
                                         Actions
@@ -176,6 +179,7 @@
                         </div>
                         <div class="data-card-actions">
                             <a href="?page=sessions&action=take&id=<?= $session['id'] ?? 0 ?>" class="btn btn-success btn-sm">Take</a>
+                            <a href="?page=qr&action=display&id=<?= $session['id'] ?? 0 ?>" class="btn btn-primary btn-sm">QR</a>
                             <a href="?page=sessions&action=view&id=<?= $session['id'] ?? 0 ?>" class="btn btn-secondary btn-sm">View</a>
                         </div>
                     </div>
