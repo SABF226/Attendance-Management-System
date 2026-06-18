@@ -40,10 +40,10 @@ function setSecurityHeaders() {
     header('Referrer-Policy: strict-origin-when-cross-origin');
     
     // Permissions Policy (formerly Feature Policy)
-    // camera=(self) lets our own pages (the QR scanner) use the camera while
-    // still blocking any third-party/embedded origins. geolocation & microphone
-    // remain fully disabled.
-    header('Permissions-Policy: geolocation=(), microphone=(), camera=(self)');
+    // camera=(self) lets the QR scanner use the camera and geolocation=(self)
+    // lets the geofence check read GPS — both same-origin only. Third-party /
+    // embedded origins stay blocked, and microphone remains fully disabled.
+    header('Permissions-Policy: geolocation=(self), microphone=(), camera=(self)');
     
     // Content Security Policy (CSP) - Adjust as needed
     $csp = "default-src 'self'; ";

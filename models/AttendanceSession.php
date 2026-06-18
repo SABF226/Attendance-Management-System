@@ -224,6 +224,88 @@ class AttendanceSession {
     }
 
     /**
+     * Pin a session's class location. Members must be within $radius metres to
+     * check in. Radius is clamped to 20–2000 m. Returns false on bad coords.
+     */
+    public function setGeofence($sessionId, $lat, $lng, $radius, $accuracy = 0) {
+        $lat = (float)$lat;
+        $lng = (float)$lng;
+        $radius = (int)$radius;
+        $accuracy = max(0, min((int)$accuracy, 2000));
+        if ($radius < 20)   { $radius = 20; }
+        if ($radius > 2000) { $radius = 2000; }
+        if ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+            return false;
+        }
+        $this->db->query(
+            "UPDATE attendance_sessions SET geo_lat = ?, geo_lng = ?, geo_radius = ?, geo_accuracy = ? WHERE id = ?",
+            [$lat, $lng, $radius, $accuracy, $sessionId]
+        );
+        return true;
+    }
+
+    /** Remove a session's geofence (check-in then allowed from anywhere). */
+    public function clearGeofence($sessionId) {
+        $this->db->query(
+            "UPDATE attendance_sessions SET geo_lat = NULL, geo_lng = NULL, geo_radius = NULL WHERE id = ?",
+            [$sessionId]
+        );
+    }
+
+    /** Does this session have a location pinned? */
+    public function hasGeofence($session) {
+        return $session && $session['geo_lat'] !== null && $session['geo_lng'] !== null;
+    }
+
+    /** Great-circle distance in metres between two points (haversine). */
+    public function haversineMeters($lat1, $lng1, $lat2, $lng2) {
+        $R = 6371000.0;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2
+           + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        return $R * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
+
+    /** Distance (metres) from the session's pinned centre, or null if N/A. */
+    public function geofenceDistance($session, $lat, $lng) {
+        if (!$this->hasGeofence($session) || $lat === null || $lng === null || $lat === '' || $lng === '') {
+            return null;
+        }
+        return $this->haversineMeters(
+            (float)$session['geo_lat'], (float)$session['geo_lng'],
+            (float)$lat, (float)$lng
+        );
+    }
+
+    /**
+     * The effective allowed distance: the chosen radius plus a credit for the GPS
+     * uncertainty of BOTH the admin's pin and the member's scan (each capped at
+     * 200 m). This keeps real attendees in despite noisy indoor GPS — the rotating
+     * token already defeats sharing, so we bias toward acceptance.
+     */
+    public function geofenceAllowance($session, $memberAccuracy = 0) {
+        $memberAcc = max(0, min((float)$memberAccuracy, 200));
+        $adminAcc  = max(0, min((float)($session['geo_accuracy'] ?? 0), 200));
+        return (float)$session['geo_radius'] + $memberAcc + $adminAcc;
+    }
+
+    /**
+     * Is the member (at $lat,$lng with GPS $accuracy metres) inside the session's
+     * geofence? Returns true when no geofence is set.
+     */
+    public function isWithinGeofence($session, $lat, $lng, $accuracy = 0) {
+        if (!$this->hasGeofence($session)) {
+            return true;
+        }
+        $dist = $this->geofenceDistance($session, $lat, $lng);
+        if ($dist === null) {
+            return false;
+        }
+        return $dist <= $this->geofenceAllowance($session, $accuracy);
+    }
+
+    /**
      * Get monthly statistics for sessions
      */
     public function getMonthlyStats() {

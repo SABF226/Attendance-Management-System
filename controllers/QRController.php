@@ -115,6 +115,23 @@ class QRController {
             return;
         }
 
+        // Geofence: if the session has a pinned location, the member must be near it.
+        if ($this->sessionModel->hasGeofence($session)) {
+            $lat = $input['lat'] ?? null;
+            $lng = $input['lng'] ?? null;
+            $acc = $input['accuracy'] ?? 0;
+            if ($lat === null || $lng === null || $lat === '' || $lng === '') {
+                echo json_encode(['success' => false, 'error' => 'Location required. Allow location access for this site and scan again.']);
+                return;
+            }
+            if (!$this->sessionModel->isWithinGeofence($session, $lat, $lng, $acc)) {
+                $dist    = (int)round($this->sessionModel->geofenceDistance($session, $lat, $lng));
+                $allowed = (int)round($this->sessionModel->geofenceAllowance($session, $acc));
+                echo json_encode(['success' => false, 'error' => "Too far from the class to check in (about {$dist} m away; must be within {$allowed} m). Move closer and scan again."]);
+                return;
+            }
+        }
+
         $sessionId = (int)$session['id'];
         $memberId  = (int)$_SESSION['user_id'];
 
@@ -190,5 +207,61 @@ class QRController {
             'step'      => AttendanceSession::QR_STEP_SECONDS,
             'expiresAt' => $session['qr_code_expires_at'],
         ]);
+    }
+
+    /**
+     * POST ?page=qr&action=geofence&id=X  (form-encoded)
+     * Admin: pin (mode=set, with lat/lng/radius captured from the admin's device)
+     * or remove (mode=clear) the session's class location. CSRF is verified
+     * globally in index.php.
+     */
+    public function geofence($sessionId) {
+        header('Content-Type: application/json');
+
+        if (($_SESSION['user_role'] ?? '') !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Admin access required']);
+            return;
+        }
+
+        $session = $this->sessionModel->getById($sessionId);
+        if (!$session) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Session not found']);
+            return;
+        }
+
+        $mode = $_POST['mode'] ?? 'set';
+
+        if ($mode === 'clear') {
+            $this->sessionModel->clearGeofence($sessionId);
+            echo json_encode(['success' => true, 'geofence' => false]);
+            return;
+        }
+
+        $lat = $_POST['lat'] ?? '';
+        $lng = $_POST['lng'] ?? '';
+        $radius = (int)($_POST['radius'] ?? 100);
+        $accuracy = (int)round((float)($_POST['accuracy'] ?? 0));
+        if ($lat === '' || $lng === '') {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Could not read your location. Allow location access and try again.']);
+            return;
+        }
+        // Reject imprecise pins: an accuracy of hundreds of metres means GPS is off
+        // and the browser used IP-based location (often tens of km wrong), which
+        // would make the geofence useless. GPS pins are typically ±5–50 m.
+        if ($accuracy > 0 && $accuracy > 300) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'error' => "Your location is only accurate to ±{$accuracy} m — GPS is probably off, so the browser used your internet (IP) location. Turn on GPS and pin from a phone standing in the classroom."]);
+            return;
+        }
+        if (!$this->sessionModel->setGeofence($sessionId, $lat, $lng, $radius, $accuracy)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Invalid coordinates']);
+            return;
+        }
+
+        echo json_encode(['success' => true, 'geofence' => true, 'radius' => max(20, min(2000, $radius))]);
     }
 }

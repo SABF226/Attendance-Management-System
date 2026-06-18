@@ -87,11 +87,20 @@ $scanUrl   = Security::baseUrl('index.php') . '?page=qr&action=scan';
             return;
         }
 
-        fetch(scanUrl, {
+        // Attach device GPS (used only for geofenced sessions; ignored otherwise).
+        function submitScan(coords) {
+          fetch(scanUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            body: JSON.stringify({ sessionId: payload.s, token: payload.t, csrf_token: csrfToken })
-        })
+            body: JSON.stringify({
+                sessionId: payload.s,
+                token: payload.t,
+                csrf_token: csrfToken,
+                lat: coords ? coords.latitude : null,
+                lng: coords ? coords.longitude : null,
+                accuracy: coords ? coords.accuracy : null
+            })
+          })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
@@ -120,6 +129,17 @@ $scanUrl   = Security::baseUrl('index.php') . '?page=qr&action=scan';
                 '</div>'
             );
         });
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                pos => submitScan(pos.coords),
+                ()  => submitScan(null),
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
+            );
+        } else {
+            submitScan(null);
+        }
     }
 
     function startWithCamera(cameraId) {

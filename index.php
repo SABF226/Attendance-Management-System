@@ -318,6 +318,9 @@ try {
                 case 'token':
                     $controller->token($id);
                     exit;
+                case 'geofence':
+                    $controller->geofence($id);
+                    exit;
                 default:
                     header('Location: index.php?page=sessions');
                     exit;
