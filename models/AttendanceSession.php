@@ -147,8 +147,17 @@ class AttendanceSession {
         return $stmt->fetchAll();
     }
     
+    // Rotating-QR settings: the displayed token changes every QR_STEP_SECONDS,
+    // and a scan also accepts up to QR_GRACE_STEPS previous steps to tolerate
+    // clock skew and scan latency. A screenshot older than ~(STEP * (GRACE+1))
+    // seconds is therefore rejected — which defeats screenshot-and-share.
+    const QR_STEP_SECONDS = 20;
+    const QR_GRACE_STEPS  = 1;
+
     /**
-     * Generate a QR token for a session (valid for $durationMinutes minutes).
+     * Open a session for QR check-in for $durationMinutes (the outer window).
+     * Stores a per-session secret; the visible token is derived from it and
+     * rotates every QR_STEP_SECONDS (see rotatingToken()).
      * Duration is clamped to a sane range (1–1440 min); defaults to 30.
      */
     public function generateQRCode($sessionId, $durationMinutes = 30) {
@@ -156,24 +165,55 @@ class AttendanceSession {
         if ($durationMinutes < 1 || $durationMinutes > 1440) {
             $durationMinutes = 30;
         }
-        $token = bin2hex(random_bytes(32));
+        $secret = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', strtotime("+{$durationMinutes} minutes"));
         $this->db->query(
-            "UPDATE attendance_sessions SET qr_code_token = ?, qr_code_expires_at = ?, is_qr_active = 1 WHERE id = ?",
-            [$token, $expiresAt, $sessionId]
+            "UPDATE attendance_sessions SET qr_secret = ?, qr_code_token = NULL, qr_code_expires_at = ?, is_qr_active = 1 WHERE id = ?",
+            [$secret, $expiresAt, $sessionId]
         );
-        return $token;
+        return $secret;
     }
 
     /**
-     * Check if a QR token is valid and not expired
+     * Derive the rotating token for a secret at a given time-step offset.
+     * token = first 32 hex chars of HMAC-SHA256(secret, step-counter).
      */
-    public function isQRCodeValid($sessionId, $token) {
-        $stmt = $this->db->query(
-            "SELECT id FROM attendance_sessions WHERE id = ? AND qr_code_token = ? AND is_qr_active = 1 AND qr_code_expires_at > NOW()",
-            [$sessionId, $token]
-        );
-        return $stmt->fetch() !== false;
+    public function rotatingToken($secret, $offset = 0) {
+        $counter = intdiv(time(), self::QR_STEP_SECONDS) + $offset;
+        return substr(hash_hmac('sha256', (string)$counter, $secret), 0, 32);
+    }
+
+    /**
+     * The token to display right now for a session, or null if the session is
+     * not active / expired / has no secret.
+     */
+    public function currentToken($session) {
+        if (empty($session['qr_secret']) || empty($session['is_qr_active'])) {
+            return null;
+        }
+        if (empty($session['qr_code_expires_at']) || strtotime($session['qr_code_expires_at']) <= time()) {
+            return null;
+        }
+        return $this->rotatingToken($session['qr_secret'], 0);
+    }
+
+    /**
+     * Validate a scanned token for a session row: must be active, inside the
+     * outer expiry window, and match the current or a recent (grace) token.
+     */
+    public function isScanTokenValid($session, $token) {
+        if (!$session || empty($session['qr_secret']) || empty($session['is_qr_active'])) {
+            return false;
+        }
+        if (empty($session['qr_code_expires_at']) || strtotime($session['qr_code_expires_at']) <= time()) {
+            return false;
+        }
+        for ($offset = 0; $offset >= -self::QR_GRACE_STEPS; $offset--) {
+            if (hash_equals($this->rotatingToken($session['qr_secret'], $offset), (string)$token)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

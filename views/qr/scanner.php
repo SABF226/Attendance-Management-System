@@ -17,7 +17,16 @@ $scanUrl   = Security::baseUrl('index.php') . '?page=qr&action=scan';
             Point your camera at the QR code displayed by your coach.
         </p>
 
-        <div id="qr-reader" style="max-width:480px;margin:0 auto;border-radius:12px;overflow:hidden;"></div>
+        <div id="start-wrap" style="text-align:center;margin-bottom:8px;">
+            <button id="start-btn" class="btn btn-primary" style="font-size:16px;padding:12px 28px;">
+                📷 Start Scanning
+            </button>
+            <p style="color:#888;font-size:12px;margin-top:10px;">
+                Your browser will ask for camera permission — tap <strong>Allow</strong>.
+            </p>
+        </div>
+
+        <div id="qr-reader" style="max-width:480px;margin:0 auto;border-radius:12px;overflow:hidden;display:none;"></div>
 
         <div id="result" style="margin-top:20px;text-align:center;"></div>
 
@@ -63,10 +72,25 @@ $scanUrl   = Security::baseUrl('index.php') . '?page=qr&action=scan';
             '<p>Validating attendance…</p></div>'
         );
 
+        // The QR encodes the session id (s) and the current rotating token (t).
+        let payload = null;
+        try { payload = JSON.parse(decodedText); } catch (e) { /* not our QR */ }
+
+        if (!payload || !payload.s || !payload.t) {
+            showResult(
+                '<div style="background:#f8d7da;border:1px solid #f5c6cb;border-radius:10px;padding:24px;">' +
+                '<div style="font-size:48px;margin-bottom:8px;">❌</div>' +
+                '<p style="color:#721c24;margin:0 0 16px;">This is not a valid attendance QR code. Scan the live code shown in class.</p>' +
+                '<button onclick="location.reload()" class="btn btn-primary">Try Again</button>' +
+                '</div>'
+            );
+            return;
+        }
+
         fetch(scanUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            body: JSON.stringify({ token: decodedText, csrf_token: csrfToken })
+            body: JSON.stringify({ sessionId: payload.s, token: payload.t, csrf_token: csrfToken })
         })
         .then(r => r.json())
         .then(data => {
@@ -99,6 +123,8 @@ $scanUrl   = Security::baseUrl('index.php') . '?page=qr&action=scan';
     }
 
     function startWithCamera(cameraId) {
+        document.getElementById('start-wrap').style.display = 'none';
+        document.getElementById('qr-reader').style.display = 'block';
         scanner = new Html5Qrcode('qr-reader');
         scanner.start(
             cameraId,
@@ -108,23 +134,30 @@ $scanUrl   = Security::baseUrl('index.php') . '?page=qr&action=scan';
         ).catch(err => showError('Could not start camera: ' + err));
     }
 
-    // Enumerate cameras first, then pick the best one
-    Html5Qrcode.getCameras()
-        .then(cameras => {
-            if (!cameras || cameras.length === 0) {
-                showError('No camera detected on this device.');
-                return;
-            }
-            // Prefer rear-facing camera by label, otherwise take the last one
-            const rear = cameras.find(c =>
-                /back|rear|environment/i.test(c.label)
-            );
-            startWithCamera((rear || cameras[cameras.length - 1]).id);
-        })
-        .catch(err => {
-            // getCameras() rejects when permission denied
-            showError('Camera permission denied. Please allow access in your browser settings and reload. (' + err + ')');
-        });
+    // Start only on a user tap — camera permission is far more reliable when
+    // requested from a gesture, especially on iOS Safari.
+    function startScanner() {
+        Html5Qrcode.getCameras()
+            .then(cameras => {
+                if (!cameras || cameras.length === 0) {
+                    showError('No camera detected on this device.');
+                    return;
+                }
+                // Prefer rear-facing camera by label, otherwise take the last one
+                const rear = cameras.find(c => /back|rear|environment/i.test(c.label));
+                startWithCamera((rear || cameras[cameras.length - 1]).id);
+            })
+            .catch(err => {
+                // getCameras() rejects when permission is blocked
+                showError(
+                    'We could not access your camera. Make sure you tapped <strong>Allow</strong> when prompted. ' +
+                    'If you opened this link from inside a chat app (WhatsApp, Messenger, etc.), reopen it in ' +
+                    '<strong>Safari</strong> or <strong>Chrome</strong>. (' + err + ')'
+                );
+            });
+    }
+
+    document.getElementById('start-btn').addEventListener('click', startScanner);
 })();
 </script>
 

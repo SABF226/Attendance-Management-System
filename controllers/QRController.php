@@ -26,9 +26,10 @@ class QRController {
             exit;
         }
 
-        // Generate a fresh QR if none active or explicitly requested.
+        // Generate a fresh QR only if the session has never had one, or the admin
+        // explicitly asked (so Deactivate persists instead of being re-created).
         // Admin may choose how long the code stays valid (allow-listed minutes).
-        if (!$session['is_qr_active'] || isset($_GET['generate'])) {
+        if (empty($session['qr_secret']) || isset($_GET['generate'])) {
             $allowedDurations = [5, 15, 30, 60];
             $duration = (int)($_GET['duration'] ?? 30);
             if (!in_array($duration, $allowedDurations, true)) {
@@ -99,25 +100,22 @@ class QRController {
             return;
         }
 
+        // The QR encodes the session id and a short-lived rotating token.
+        $scanSessionId = (int)($input['sessionId'] ?? 0);
         $token = trim($input['token'] ?? '');
-        if (empty($token)) {
+        if ($scanSessionId <= 0 || $token === '') {
             echo json_encode(['success' => false, 'error' => 'No token received']);
             return;
         }
 
-        // Find the session for this token
-        $stmt = $this->db->query(
-            "SELECT id FROM attendance_sessions WHERE qr_code_token = ? AND is_qr_active = 1 AND qr_code_expires_at > NOW()",
-            [$token]
-        );
-        $sessionRow = $stmt->fetch();
-
-        if (!$sessionRow) {
-            echo json_encode(['success' => false, 'error' => 'QR code is invalid or has expired']);
+        // Load the session and validate the rotating token against its secret.
+        $session = $this->sessionModel->getById($scanSessionId);
+        if (!$this->sessionModel->isScanTokenValid($session, $token)) {
+            echo json_encode(['success' => false, 'error' => 'QR code is invalid or has expired. Make sure you are scanning the live code shown in class.']);
             return;
         }
 
-        $sessionId = $sessionRow['id'];
+        $sessionId = (int)$session['id'];
         $memberId  = (int)$_SESSION['user_id'];
 
         // Prevent duplicate attendance
@@ -161,5 +159,36 @@ class QRController {
         $pageTitle = 'Scan QR Code';
         require_once __DIR__ . '/../views/header.php';
         include __DIR__ . '/../views/qr/scanner.php';
+    }
+
+    /**
+     * GET ?page=qr&action=token&id=X  (JSON)
+     * Admin: returns the current rotating token for the session's display screen
+     * to poll, so the visible QR refreshes without a full page reload.
+     */
+    public function token($sessionId) {
+        header('Content-Type: application/json');
+
+        if (($_SESSION['user_role'] ?? '') !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['active' => false, 'error' => 'Admin access required']);
+            return;
+        }
+
+        $session = $this->sessionModel->getById($sessionId);
+        $token = $session ? $this->sessionModel->currentToken($session) : null;
+
+        if ($token === null) {
+            echo json_encode(['active' => false]);
+            return;
+        }
+
+        echo json_encode([
+            'active'    => true,
+            'sessionId' => (int)$session['id'],
+            'token'     => $token,
+            'step'      => AttendanceSession::QR_STEP_SECONDS,
+            'expiresAt' => $session['qr_code_expires_at'],
+        ]);
     }
 }

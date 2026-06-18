@@ -315,6 +315,9 @@ try {
                 case 'scanner':
                     $controller->scannerPage();
                     break;
+                case 'token':
+                    $controller->token($id);
+                    exit;
                 default:
                     header('Location: index.php?page=sessions');
                     exit;
