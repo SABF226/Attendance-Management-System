@@ -1,0 +1,16 @@
+<?php
+/**
+ * Copy this file to config/mail.local.php and fill in your real values.
+ * config/mail.local.php is gitignored — your SMTP password never gets committed.
+ *
+ * Gmail: enable 2-Step Verification, then create an "App Password"
+ * (Google Account → Security → App passwords) and paste the 16-char code below.
+ */
+
+return [
+    'password' => 'your-16-char-gmail-app-password',
+    // Optionally override any key from config/mail.php, e.g.:
+    // 'from_name' => 'BIT English Club',
+    // 'app_url'   => 'https://attendance.example.org',
+    // 'enabled'   => true,
+];

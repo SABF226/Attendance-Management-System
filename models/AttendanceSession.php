@@ -105,6 +105,20 @@ class AttendanceSession {
         $stmt = $this->db->query($sql, [$limit]);
         return $stmt->fetchAll();
     }
+
+    /** Sessions on a given date (Y-m-d). Used by the reminder cron. */
+    public function getByDate($date) {
+        $sql = "SELECT * FROM attendance_sessions WHERE session_date = ? ORDER BY session_time ASC";
+        return $this->db->query($sql, [$date])->fetchAll();
+    }
+
+    /** Mark a session's reminder email as sent now. */
+    public function markReminderSent($sessionId) {
+        $this->db->query(
+            "UPDATE attendance_sessions SET reminder_sent_at = NOW() WHERE id = ?",
+            [$sessionId]
+        );
+    }
     
     /**
      * Get filtered sessions with sorting

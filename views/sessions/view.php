@@ -5,6 +5,11 @@
     <div class="card-header">
         <h2 class="card-title">Session Details</h2>
         <div class="actions">
+            <form method="POST" action="?page=sessions&action=remind&id=<?= $session['id'] ?? 0 ?>" style="display:inline;"
+                  onsubmit="return confirm('Email a reminder for this session to all members?');">
+                <?= Security::csrfField() ?>
+                <button type="submit" class="btn btn-primary btn-sm">📣 Send reminder</button>
+            </form>
             <a href="?page=sessions&action=export&id=<?= $session['id'] ?? 0 ?>&format=pdf" class="btn btn-secondary btn-sm">Export PDF</a>
             <a href="?page=sessions&action=export&id=<?= $session['id'] ?? 0 ?>&format=excel" class="btn btn-secondary btn-sm">Export Excel</a>
             <a href="?page=sessions" class="btn btn-secondary btn-sm">Back to Sessions</a>

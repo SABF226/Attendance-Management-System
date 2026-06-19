@@ -289,7 +289,11 @@ try {
                 case 'delete':
                     $controller->deleteSession($id);
                     break;
-                    
+
+                case 'remind':
+                    $controller->sendReminder($id);
+                    break;
+
                 default:
                     $result = $controller->sessionIndex();
                     $sessions = $result['sessions'];

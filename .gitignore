@@ -11,6 +11,9 @@ composer.phar
 .env.local
 .env.*.local
 
+# Secrets
+config/mail.local.php
+
 # IDE
 .idea/
 .vscode/

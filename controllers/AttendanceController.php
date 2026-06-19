@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../models/AttendanceSession.php';
 require_once __DIR__ . '/../models/AttendanceRecord.php';
 require_once __DIR__ . '/../models/Member.php';
+require_once __DIR__ . '/../helpers/Notifications.php';
 
 class AttendanceController {
     private $sessionModel;
@@ -144,7 +145,46 @@ class AttendanceController {
         
         $this->redirect('?page=sessions');
     }
-    
+
+    /**
+     * Email a session reminder to all members (admin, manual trigger).
+     */
+    public function sendReminder($sessionId) {
+        $back = '?page=sessions&action=view&id=' . (int)$sessionId;
+
+        // Rate limit: avoid accidental mass re-sends
+        if (!Security::checkRateLimit('send_reminder', 5, 300)) {
+            $_SESSION['message'] = 'Too many reminder sends. Please wait a few minutes.';
+            $_SESSION['message_type'] = 'error';
+            $this->redirect($back);
+        }
+
+        if (!Mailer::isConfigured()) {
+            $_SESSION['message'] = 'Email is not configured yet. Add your SMTP password in config/mail.local.php.';
+            $_SESSION['message_type'] = 'error';
+            $this->redirect($back);
+        }
+
+        $session = $this->sessionModel->getById($sessionId);
+        if (!$session) {
+            $_SESSION['message'] = 'Session not found!';
+            $_SESSION['message_type'] = 'error';
+            $this->redirect('?page=sessions');
+        }
+
+        $members = $this->memberModel->getAll();
+        $result  = Notifications::sendSessionReminders($session, $members);
+        $this->sessionModel->markReminderSent($sessionId);
+
+        $msg = "Reminder sent to {$result['sent']} member(s)";
+        if ($result['failed'] > 0)  { $msg .= ", {$result['failed']} failed"; }
+        if ($result['skipped'] > 0) { $msg .= ", {$result['skipped']} skipped (no valid email)"; }
+        $_SESSION['message'] = $msg . '.';
+        $_SESSION['message_type'] = $result['sent'] > 0 ? 'success' : 'error';
+
+        $this->redirect($back);
+    }
+
     /**
      * Show take attendance form
      */
