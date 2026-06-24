@@ -1,0 +1,29 @@
+<?php
+/**
+ * Copy to config/database.local.php and fill in THIS machine's DB credentials.
+ * This file is gitignored, so each machine (your PC, the server) keeps its own.
+ * The same config/database.php then works locally AND online with no edits.
+ *
+ * --- LOCAL (XAMPP/Laragon/dev) ---
+ * return [
+ *     'host'     => 'localhost',
+ *     'dbname'   => 'english_club',
+ *     'username' => 'root',
+ *     'password' => '',
+ * ];
+ *
+ * --- PRODUCTION (e.g. InfinityFree) ---
+ * return [
+ *     'host'     => 'sqlXXX.infinityfree.com',
+ *     'dbname'   => 'epiz_XXXXXXXX_english_club',
+ *     'username' => 'epiz_XXXXXXXX',
+ *     'password' => 'your-db-password',
+ * ];
+ */
+
+return [
+    'host'     => 'localhost',
+    'dbname'   => 'english_club',
+    'username' => 'root',
+    'password' => '',
+];

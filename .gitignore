@@ -13,6 +13,9 @@ composer.phar
 
 # Secrets
 config/mail.local.php
+config/database.local.php
+#dev docs
+docs/
 
 # IDE
 .idea/

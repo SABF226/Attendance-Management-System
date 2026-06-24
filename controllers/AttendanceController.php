@@ -325,112 +325,95 @@ class AttendanceController {
         if (!file_exists(__DIR__ . '/../fpdf/fpdf.php')) {
             die("Error: FPDF not found. Please ensure fpdf.php has been downloaded.");
         }
-        
-        require_once __DIR__ . '/../fpdf/fpdf.php';
-        
-        $pdf = new \FPDF('P', 'mm', 'A4');
+
+        require_once __DIR__ . '/../helpers/AttendancePdf.php';
+
+        $logoPath = __DIR__ . '/../assets/logo_bit_en.jpg';
+
+        $pdf = new \AttendancePdf('P', 'mm', 'A4');
         $pdf->SetCreator('SaBf GraphiTech');
         $pdf->SetAuthor('English Club');
-        $pdf->SetTitle('Attendance List - ' . htmlspecialchars($session['session_name'] ?? 'Session'));
-        
-        $pdf->AddPage();
-        
-        // --- Header Section ---
-        $logoPath = __DIR__ . '/../assets/logo_bit_en.jpg';
-        if (file_exists($logoPath)) {
-            $pdf->Image($logoPath, 15, 10, 30);
-        }
-        
-        $pdf->SetFont('Arial', 'B', 16);
-        $pdf->SetTextColor(29, 31, 90); // #1D1F5A
-        $pdf->Cell(0, 10, 'Attendance List', 0, 1, 'C');
-        
-        $pdf->SetFont('Arial', 'B', 14);
-        $pdf->SetTextColor(45, 47, 122); // #2D2F7A
-        $pdf->Cell(0, 8, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $session['session_name'] ?? ''), 0, 1, 'C');
-        $pdf->Ln(5);
-        
-        // Session Metadata
+        $pdf->SetTitle('Attendance List - ' . ($session['session_name'] ?? 'Session'));
+
+        // Page geometry: symmetrical 15mm side margins, room for footer.
+        $pdf->SetMargins(15, 12, 15);
+        $pdf->SetAutoPageBreak(true, 18);
+        $pdf->AliasNbPages(); // resolves {nb} -> total page count
+        $pdf->configure('Attendance List', $session['session_name'] ?? '', $logoPath);
+
+        $pdf->AddPage(); // triggers the repeating Header()
+
+        // --- Session metadata (first page only) ---
         $pdf->SetFont('Arial', '', 11);
         $pdf->SetTextColor(0, 0, 0);
-        
+
         $dateFormatted = date('F d, Y', strtotime($session['session_date'] ?? 'now'));
         $timeFormatted = !empty($session['session_time']) ? date('H:i', strtotime($session['session_time'])) : 'N/A';
         $team = !empty($session['session_team']) ? $session['session_team'] : 'N/A';
-        
+
         $pdf->Cell(70, 6, 'Date: ' . $dateFormatted, 0, 0, 'L');
-        $pdf->Cell(60, 6, 'Time: ' . $timeFormatted, 0, 0, 'L');
-        $pdf->Cell(60, 6, "Session's Team: " . iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $team), 0, 1, 'L');
+        $pdf->Cell(50, 6, 'Time: ' . $timeFormatted, 0, 0, 'L');
+        $pdf->Cell(60, 6, $pdf->latin("Session's Team: " . $team), 0, 1, 'L');
         $pdf->Ln(5);
-        
-        // --- Body Section (Table) ---
-        $pdf->SetFillColor(29, 31, 90);
-        $pdf->SetTextColor(252, 251, 255);
-        $pdf->SetFont('Arial', 'B', 10);
-        
-        $w = [45, 45, 55, 20, 25];
-        $pdf->Cell($w[0], 7, 'Name', 1, 0, 'C', true);
-        $pdf->Cell($w[1], 7, 'Field', 1, 0, 'C', true);
-        $pdf->Cell($w[2], 7, 'Email', 1, 0, 'C', true);
-        $pdf->Cell($w[3], 7, 'Status', 1, 0, 'C', true);
-        $pdf->Cell($w[4], 7, 'Notes', 1, 1, 'C', true);
-        
+
+        // --- Attendance table ---
+        $w = \AttendancePdf::COL_WIDTHS;
+        $rowH = \AttendancePdf::ROW_HEIGHT;
+        $pdf->tableHeader();
         $pdf->SetFont('Arial', '', 9);
-        
+
         foreach ($records as $record) {
-            $status = $record['status'] ?? 'present';
-            $name = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', substr($record['name'] ?? '', 0, 25));
-            $field = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', substr($record['field'] ?? '', 0, 25));
-            $email = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', substr($record['email'] ?? '', 0, 30));
-            $notes = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', substr($record['notes'] ?? '-', 0, 15));
-            
-            $pdf->SetTextColor(0, 0, 0); 
-            $pdf->Cell($w[0], 6, $name, 1, 0, 'L');
-            $pdf->Cell($w[1], 6, $field, 1, 0, 'L');
-            $pdf->Cell($w[2], 6, $email, 1, 0, 'L');
-            
-            if ($status === 'present') {
-                 $pdf->SetFillColor(128, 188, 203);
-                 $pdf->SetTextColor(29, 31, 90);
-                 $pdf->Cell($w[3], 6, ucfirst($status), 1, 0, 'C', true);
-            } elseif ($status === 'absent') {
-                 $pdf->SetFillColor(182, 31, 36);
-                 $pdf->SetTextColor(252, 251, 255);
-                 $pdf->Cell($w[3], 6, ucfirst($status), 1, 0, 'C', true);
-            } else {
-                 $pdf->SetFillColor(252, 251, 255);
-                 $pdf->SetTextColor(29, 31, 90);
-                 $pdf->Cell($w[3], 6, ucfirst($status), 1, 0, 'C', true);
+            // Keep a row together: break first, then repeat the column header.
+            if ($pdf->ensureSpace($rowH)) {
+                $pdf->tableHeader();
+                $pdf->SetFont('Arial', '', 9);
             }
-            
+
+            $status = $record['status'] ?? 'present';
+            $name  = $pdf->latin(substr($record['name'] ?? '', 0, 25));
+            $field = $pdf->latin(substr($record['field'] ?? '', 0, 25));
+            $email = $pdf->latin(substr($record['email'] ?? '', 0, 32));
+            $notes = $pdf->latin(substr($record['notes'] ?? '-', 0, 16));
+
             $pdf->SetTextColor(0, 0, 0);
-            $pdf->Cell($w[4], 6, $notes, 1, 1, 'L');
+            $pdf->Cell($w[0], $rowH, $name, 1, 0, 'L');
+            $pdf->Cell($w[1], $rowH, $field, 1, 0, 'L');
+            $pdf->Cell($w[2], $rowH, $email, 1, 0, 'L');
+
+            if ($status === 'present') {
+                $pdf->SetFillColor(...\AttendancePdf::PRESENT_BG);
+                $pdf->SetTextColor(...\AttendancePdf::BRAND_DARK);
+            } elseif ($status === 'absent') {
+                $pdf->SetFillColor(...\AttendancePdf::ABSENT_BG);
+                $pdf->SetTextColor(...\AttendancePdf::BRAND_LIGHT);
+            } else {
+                $pdf->SetFillColor(...\AttendancePdf::BRAND_LIGHT);
+                $pdf->SetTextColor(...\AttendancePdf::BRAND_DARK);
+            }
+            $pdf->Cell($w[3], $rowH, ucfirst($status), 1, 0, 'C', true);
+
+            $pdf->SetTextColor(0, 0, 0);
+            $pdf->Cell($w[4], $rowH, $notes, 1, 1, 'L');
         }
-        
+
+        // --- Signature block (kept whole on its page) ---
         $pdf->Ln(15);
-        
-        if ($pdf->GetY() > 240) {
-            $pdf->AddPage();
-        }
-        
+        $pdf->ensureSpace(40); // labels + signature lines + breathing room
+
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->Cell(60, 6, 'Chairman', 0, 0, 'C');
-        $pdf->Cell(70, 6, 'General Secretary', 0, 0, 'C');
+        $pdf->Cell(60, 6, 'General Secretary', 0, 0, 'C');
         $pdf->Cell(60, 6, "Session's Team Leader", 0, 1, 'C');
-        
+
         $pdf->Ln(20);
         $y = $pdf->GetY();
-        $pdf->Line(25, $y, 65, $y);
-        $pdf->Line(90, $y, 140, $y);
-        $pdf->Line(160, $y, 200, $y);
-        
-        $pdf->SetY(-15);
-        $pdf->SetFont('Arial', 'I', 8);
-        $pdf->Cell(0, 10, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', '© 2026 SaBf GraphiTech. All rights reserved.'), 0, 0, 'R');
-        
+        $pdf->Line(20, $y, 70, $y);
+        $pdf->Line(80, $y, 130, $y);
+        $pdf->Line(140, $y, 190, $y);
+
         if (ob_get_length()) ob_end_clean();
-        
+
         $filename = 'BIT_English_Club_attendance_' . ($session['session_date'] ?? date('Y-m-d')) . '.pdf';
         $pdf->Output('D', $filename);
         exit;
